@@ -5,6 +5,8 @@ mod generator;
 mod render;
 mod seed;
 
+use std::path::PathBuf;
+
 use anyhow::Result;
 use clap::Parser;
 
@@ -36,20 +38,26 @@ fn main() -> Result<()> {
 
     let creatures_used = generator::populator::unique_creatures(&rooms);
 
+    let output_path = cfg
+        .output
+        .path
+        .clone()
+        .unwrap_or_else(|| PathBuf::from(format!("dungeon-{seed_used}.pdf")));
+
     render::pdf::render(
         &rooms,
         &corridors,
         &creatures_used,
         &cfg.output,
         seed_used,
-        &cfg.output.path,
+        &output_path,
     )?;
 
     println!(
         "Dungeon generated: {} rooms, seed {}. PDF written to {}",
         rooms.len(),
         seed_used,
-        cfg.output.path.display()
+        output_path.display()
     );
 
     Ok(())

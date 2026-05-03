@@ -12,7 +12,7 @@ Config(
         events_dir: "./data/events",
     ),
     output: OutputConfig(
-        path: "./dungeon.pdf",
+        path: None,
         paper_size: A4,
         include_dm_notes: true,
     ),

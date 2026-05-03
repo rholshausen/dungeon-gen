@@ -50,7 +50,7 @@ pub struct DataConfig {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct OutputConfig {
-    pub path: PathBuf,
+    pub path: Option<PathBuf>,
     pub paper_size: PaperSize,
     pub include_dm_notes: bool,
 }
@@ -80,7 +80,7 @@ impl Default for Config {
                 events_dir: PathBuf::from("./data/events"),
             },
             output: OutputConfig {
-                path: PathBuf::from("./dungeon.pdf"),
+                path: None,
                 paper_size: PaperSize::A4,
                 include_dm_notes: true,
             },
@@ -113,7 +113,7 @@ impl Config {
             self.theme = theme;
         }
         if let Some(ref output) = cli.output {
-            self.output.path = output.clone();
+            self.output.path = Some(output.clone());
         }
         if let Some(width) = cli.width {
             self.dungeon.width = width;
