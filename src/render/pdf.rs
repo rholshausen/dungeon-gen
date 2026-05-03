@@ -77,24 +77,15 @@ pub fn render(
                 break;
             }
 
-            notes_layer.use_text(
-                format!("Room {} — no special event", room.id + 1),
-                10.0,
-                Mm(10.0),
-                Mm(y),
-                &bold_font,
-            );
+            let header = if let Some(event) = &room.assigned_event {
+                format!("Room {} — {}", room.id + 1, event.name)
+            } else {
+                format!("Room {}", room.id + 1)
+            };
+            notes_layer.use_text(&header, 10.0, Mm(10.0), Mm(y), &bold_font);
             y -= 6.0;
 
             if let Some(event) = &room.assigned_event {
-                notes_layer.use_text(
-                    format!("  Event: {}", event.name),
-                    9.0,
-                    Mm(10.0),
-                    Mm(y),
-                    &font,
-                );
-                y -= 5.0;
                 notes_layer.use_text(
                     format!("  Trigger: {}", event.trigger),
                     9.0,
@@ -121,8 +112,6 @@ pub fn render(
                     &font,
                 );
                 y -= 5.0;
-            } else {
-                // Overwrite the "no special event" line header
             }
 
             if !room.assigned_creatures.is_empty() {
