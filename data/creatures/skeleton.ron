@@ -1,0 +1,20 @@
+Creature(
+    name: "Skeleton",
+    cr: 0.25,
+    hp: Dice(2, 8, 4),
+    ac: 13,
+    tags: [Medium, Undead, Common],
+    themes: [Underdark, Crypt],
+    difficulty: [Easy, Medium],
+    description: Description(
+        appearance: "Animated bones clatter together as this undead warrior shambles forward.",
+        tactics: "Skeletons attack the nearest living creature relentlessly without strategy.",
+    ),
+    attacks: [
+        Attack(
+            name: "Shortsword",
+            bonus: 4,
+            damage: Damage(Dice(1, 6, 2), Piercing),
+        ),
+    ],
+)

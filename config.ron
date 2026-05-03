@@ -1,0 +1,19 @@
+Config(
+    dungeon: DungeonConfig(
+        width: 80,
+        height: 50,
+        room_count: (min: 6, max: 14),
+        seed: None,
+    ),
+    difficulty: Medium,
+    theme: Classic,
+    data: DataConfig(
+        creatures_dir: "./data/creatures",
+        events_dir: "./data/events",
+    ),
+    output: OutputConfig(
+        path: "./dungeon.pdf",
+        paper_size: A4,
+        include_dm_notes: true,
+    ),
+)
