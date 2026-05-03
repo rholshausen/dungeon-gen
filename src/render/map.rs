@@ -143,3 +143,48 @@ pub fn room_label_position(room: &Room, page_height_mm: f32, tile_size: f32) -> 
         - (room.bounds.y as f32 + room.bounds.height as f32 / 2.0) * tile_size;
     (Mm(cx), Mm(cy))
 }
+
+/// Returns the visual centre of the corridor segment whose midpoint is furthest from every room
+/// centre, in PDF coordinates. This keeps the label in open corridor space and avoids landing
+/// inside a room that the corridor passes through.
+/// Mirrors the half-tile offset that `draw_corridor_segment` applies.
+/// Returns `None` if the corridor has no usable segments (all degenerate).
+pub fn corridor_label_position(corridor: &Corridor, rooms: &[Room], page_height_mm: f32, tile_size: f32) -> Option<(Mm, Mm)> {
+    let seg = corridor
+        .segments
+        .iter()
+        .filter(|s| s.width > 0 && s.height > 0)
+        .max_by_key(|s| {
+            // Grid-space centre of this segment.
+            let scx = s.x as f32 + s.width as f32 / 2.0;
+            let scy = s.y as f32 + s.height as f32 / 2.0;
+            // Minimum squared distance to any room centre (tile units).
+            let min_dist_sq = rooms
+                .iter()
+                .map(|r| {
+                    let rcx = r.bounds.x as f32 + r.bounds.width as f32 / 2.0;
+                    let rcy = r.bounds.y as f32 + r.bounds.height as f32 / 2.0;
+                    let dx = scx - rcx;
+                    let dy = scy - rcy;
+                    dx * dx + dy * dy
+                })
+                .fold(f32::INFINITY, |a, b| a.min(b));
+            // Scale and truncate to u32 so max_by_key has an Ord type.
+            (min_dist_sq * 100.0) as u32
+        })?;
+
+    let half = tile_size / 2.0;
+    let (ox, oy) = rect_origin(seg, page_height_mm, tile_size);
+    let w = tile_to_mm(seg.width, tile_size);
+    let h = tile_to_mm(seg.height, tile_size);
+
+    let (cx, cy) = if seg.height <= seg.width {
+        // Horizontal: draw_corridor_segment shifts the box up by half a tile in PDF y.
+        (ox.0 + w.0 / 2.0, oy.0 + half + h.0 / 2.0)
+    } else {
+        // Vertical: draw_corridor_segment shifts the box left by half a tile in PDF x.
+        (ox.0 - half + w.0 / 2.0, oy.0 + h.0 / 2.0)
+    };
+
+    Some((Mm(cx), Mm(cy)))
+}

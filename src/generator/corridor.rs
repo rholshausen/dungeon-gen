@@ -1,11 +1,14 @@
 use rand::Rng;
 use rand_chacha::ChaCha8Rng;
 
+use crate::data::event::Event;
 use crate::generator::bsp::{Rect, Room};
 
 #[derive(Debug, Clone)]
 pub struct Corridor {
+    pub id: usize,
     pub segments: Vec<Rect>,
+    pub assigned_event: Option<Event>,
 }
 
 impl Corridor {
@@ -45,7 +48,7 @@ pub fn stitch(rooms: &[Room], rng: &mut ChaCha8Rng) -> Vec<Corridor> {
             ]
         };
 
-        corridors.push(Corridor { segments });
+        corridors.push(Corridor { id: corridors.len(), segments, assigned_event: None });
     }
 
     corridors

@@ -7,6 +7,7 @@ EventList([
         effect: "2d6 falling damage, DC 13 Dex save to grab the edge",
         themes: [Classic, Ruins, Crypt],
         difficulty: [Medium, Hard, Deadly],
+        applies_to: All,
     ),
     Event(
         id: "poison_dart",
@@ -16,5 +17,6 @@ EventList([
         effect: "1d4 piercing + DC 11 Con save or 2d6 poison damage",
         themes: [Classic, Ruins],
         difficulty: [Easy, Medium, Hard],
+        applies_to: All,
     ),
 ])

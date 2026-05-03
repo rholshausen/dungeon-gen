@@ -25,10 +25,11 @@ fn main() -> Result<()> {
     let (mut rng, seed_used) = seed::make_rng(cfg.dungeon.seed);
 
     let mut rooms = generator::bsp::generate(&cfg.dungeon, &mut rng);
-    let corridors = generator::corridor::stitch(&rooms, &mut rng);
+    let mut corridors = generator::corridor::stitch(&rooms, &mut rng);
 
     generator::populator::seed(
         &mut rooms,
+        &mut corridors,
         &creatures,
         &events,
         cfg.difficulty,

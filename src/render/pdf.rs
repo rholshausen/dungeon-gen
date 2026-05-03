@@ -1,7 +1,7 @@
 use std::path::Path;
 
 use anyhow::Result;
-use printpdf::{BuiltinFont, Mm, PdfDocument};
+use printpdf::{BuiltinFont, IndirectFontRef, Mm, PdfDocument, PdfLayerReference};
 
 use crate::config::{OutputConfig, PaperSize};
 use crate::data::creature::Creature;
@@ -14,6 +14,35 @@ fn paper_dims(size: PaperSize) -> (Mm, Mm) {
         PaperSize::A4 => (Mm(210.0), Mm(297.0)),
         PaperSize::Letter => (Mm(215.9), Mm(279.4)),
     }
+}
+
+fn write_event_lines(layer: &PdfLayerReference, event: &crate::data::event::Event, y: &mut f32, font: &IndirectFontRef) {
+    layer.use_text(
+        format!("  Trigger: {}", event.trigger),
+        9.0,
+        Mm(10.0),
+        Mm(*y),
+        font,
+    );
+    *y -= 5.0;
+    if let Some(ref rating) = event.difficulty_rating {
+        layer.use_text(
+            format!("  Difficulty: {rating}"),
+            9.0,
+            Mm(10.0),
+            Mm(*y),
+            font,
+        );
+        *y -= 5.0;
+    }
+    layer.use_text(
+        format!("  Effect: {}", event.effect),
+        9.0,
+        Mm(10.0),
+        Mm(*y),
+        font,
+    );
+    *y -= 5.0;
 }
 
 pub fn render(
@@ -54,6 +83,19 @@ pub fn render(
         map_layer.use_text(label, LABEL_PT, cx, cy, &bold_font);
     }
 
+    // Corridor event labels — only drawn for corridors that have an assigned event.
+    for corridor in corridors {
+        if corridor.assigned_event.is_none() {
+            continue;
+        }
+        let label = format!("C{}", corridor.id + 1);
+        if let Some((lx, ly)) = map::corridor_label_position(corridor, rooms, page_h.0, tile_size) {
+            let cx = Mm(lx.0 - label.len() as f32 * char_w_mm / 2.0);
+            let cy = Mm(ly.0 - half_cap_mm);
+            map_layer.use_text(label, LABEL_PT, cx, cy, &font);
+        }
+    }
+
     // Footer: seed
     map_layer.use_text(
         format!("Seed: {seed}"),
@@ -86,32 +128,7 @@ pub fn render(
             y -= 6.0;
 
             if let Some(event) = &room.assigned_event {
-                notes_layer.use_text(
-                    format!("  Trigger: {}", event.trigger),
-                    9.0,
-                    Mm(10.0),
-                    Mm(y),
-                    &font,
-                );
-                y -= 5.0;
-                if let Some(ref rating) = event.difficulty_rating {
-                    notes_layer.use_text(
-                        format!("  Difficulty: {rating}"),
-                        9.0,
-                        Mm(10.0),
-                        Mm(y),
-                        &font,
-                    );
-                    y -= 5.0;
-                }
-                notes_layer.use_text(
-                    format!("  Effect: {}", event.effect),
-                    9.0,
-                    Mm(10.0),
-                    Mm(y),
-                    &font,
-                );
-                y -= 5.0;
+                write_event_lines(&notes_layer, event, &mut y, &font);
             }
 
             if !room.assigned_creatures.is_empty() {
@@ -129,7 +146,39 @@ pub fn render(
             y -= 4.0;
         }
 
-        // Footer
+        // Corridor events — spill to a new page if there isn't room for at least the header
+        // plus one entry (~40mm).
+        let corridors_with_events: Vec<&Corridor> =
+            corridors.iter().filter(|c| c.assigned_event.is_some()).collect();
+
+        if !corridors_with_events.is_empty() {
+            let (corr_layer, mut corr_y) = if y >= 40.0 {
+                y -= 4.0;
+                (doc.get_page(page2).get_layer(layer2), y)
+            } else {
+                let (page_c, layer_c) = doc.add_page(page_w, page_h, "Corridor Events");
+                let layer = doc.get_page(page_c).get_layer(layer_c);
+                layer.use_text(format!("Seed: {seed}"), 8.0, Mm(10.0), Mm(8.0), &font);
+                (layer, page_h.0 - 20.0)
+            };
+
+            corr_layer.use_text("Corridor Events", 12.0, Mm(10.0), Mm(corr_y), &bold_font);
+            corr_y -= 8.0;
+
+            for corridor in corridors_with_events {
+                if corr_y < 20.0 {
+                    break;
+                }
+                let event = corridor.assigned_event.as_ref().unwrap();
+                let header = format!("Corridor {} — {}", corridor.id + 1, event.name);
+                corr_layer.use_text(&header, 10.0, Mm(10.0), Mm(corr_y), &bold_font);
+                corr_y -= 6.0;
+                write_event_lines(&corr_layer, event, &mut corr_y, &font);
+                corr_y -= 4.0;
+            }
+        }
+
+        // Footer on room key page
         notes_layer.use_text(format!("Seed: {seed}"), 8.0, Mm(10.0), Mm(8.0), &font);
     }
 

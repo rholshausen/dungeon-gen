@@ -7,6 +7,14 @@ use walkdir::WalkDir;
 
 use crate::config::{Difficulty, Theme};
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
+pub enum AppliesTo {
+    Room,
+    Corridor,
+    #[default]
+    All,
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Event {
     pub id: String,
@@ -18,6 +26,8 @@ pub struct Event {
     pub effect: String,
     pub themes: Vec<Theme>,
     pub difficulty: Vec<Difficulty>,
+    #[serde(default)]
+    pub applies_to: AppliesTo,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

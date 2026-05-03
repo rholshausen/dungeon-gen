@@ -4,20 +4,34 @@ use rand_chacha::ChaCha8Rng;
 
 use crate::config::{Difficulty, Theme};
 use crate::data::creature::Creature;
-use crate::data::event::Event;
+use crate::data::event::{AppliesTo, Event};
 use crate::generator::bsp::Room;
+use crate::generator::corridor::Corridor;
 
 pub fn seed(
     rooms: &mut Vec<Room>,
+    corridors: &mut Vec<Corridor>,
     creatures: &[Creature],
     events: &[Event],
     difficulty: Difficulty,
     theme: Theme,
     rng: &mut ChaCha8Rng,
 ) {
-    let matching_events: Vec<&Event> = events
+    let base_events: Vec<&Event> = events
         .iter()
         .filter(|e| e.themes.contains(&theme) && e.difficulty.contains(&difficulty))
+        .collect();
+
+    let room_events: Vec<&Event> = base_events
+        .iter()
+        .copied()
+        .filter(|e| matches!(e.applies_to, AppliesTo::Room | AppliesTo::All))
+        .collect();
+
+    let corridor_events: Vec<&Event> = base_events
+        .iter()
+        .copied()
+        .filter(|e| matches!(e.applies_to, AppliesTo::Corridor | AppliesTo::All))
         .collect();
 
     let matching_creatures: Vec<&Creature> = creatures
@@ -28,7 +42,7 @@ pub fn seed(
     for room in rooms.iter_mut() {
         // ~60% chance of an event
         if rng.gen_bool(0.6) {
-            if let Some(&event) = matching_events.choose(rng) {
+            if let Some(&event) = room_events.choose(rng) {
                 room.assigned_event = Some(event.clone());
             }
         }
@@ -40,6 +54,15 @@ pub fn seed(
                 if let Some(&creature) = matching_creatures.choose(rng) {
                     room.assigned_creatures.push(creature.clone());
                 }
+            }
+        }
+    }
+
+    for corridor in corridors.iter_mut() {
+        // ~40% chance of an event in a corridor
+        if rng.gen_bool(0.4) {
+            if let Some(&event) = corridor_events.choose(rng) {
+                corridor.assigned_event = Some(event.clone());
             }
         }
     }
