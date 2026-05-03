@@ -37,10 +37,21 @@ pub fn render(
     let map_layer = doc.get_page(page1).get_layer(layer1);
     map::draw_map(&map_layer, rooms, corridors, page_h.0, tile_size);
 
-    // Room number labels
+    // Room number labels — centred inside each room.
+    // use_text anchors at the left edge of the text baseline, so we correct for both:
+    //   x: subtract half the text width (Courier char width = 0.6em)
+    //   y: subtract half the cap height (≈ 0.7em) so glyphs straddle the room centre
+    const LABEL_PT: f32 = 7.0;
+    const PT_TO_MM: f32 = 25.4 / 72.0;
+    let char_w_mm = LABEL_PT * 0.6 * PT_TO_MM;
+    let half_cap_mm = LABEL_PT * 0.7 * PT_TO_MM / 2.0;
+
     for room in rooms {
+        let label = format!("{}", room.id + 1);
         let (lx, ly) = map::room_label_position(room, page_h.0, tile_size);
-        map_layer.use_text(format!("{}", room.id + 1), 7.0, lx, ly, &bold_font);
+        let cx = Mm(lx.0 - label.len() as f32 * char_w_mm / 2.0);
+        let cy = Mm(ly.0 - half_cap_mm);
+        map_layer.use_text(label, LABEL_PT, cx, cy, &bold_font);
     }
 
     // Footer: seed

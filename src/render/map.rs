@@ -1,4 +1,5 @@
-use printpdf::{Line, Mm, PdfLayerReference, Point, Rgb};
+use printpdf::path::{PaintMode, WindingOrder};
+use printpdf::{Mm, PdfLayerReference, Point, Polygon, Rgb};
 
 use crate::generator::bsp::{Rect, Room};
 use crate::generator::corridor::Corridor;
@@ -19,10 +20,28 @@ fn tile_to_mm(tile: u32, tile_size: f32) -> Mm {
     Mm(tile as f32 * tile_size)
 }
 
+/// Returns the bottom-left corner of a rect in PDF coordinates (Y increases upward).
 fn rect_origin(rect: &Rect, page_height_mm: f32, tile_size: f32) -> (Mm, Mm) {
     let x = MAP_MARGIN_MM + rect.x as f32 * tile_size;
     let y = page_height_mm - MAP_MARGIN_MM - (rect.y as f32 + rect.height as f32) * tile_size;
     (Mm(x), Mm(y))
+}
+
+fn rect_points(ox: Mm, oy: Mm, w: Mm, h: Mm) -> Vec<(Point, bool)> {
+    vec![
+        (Point::new(ox, oy), false),
+        (Point::new(Mm(ox.0 + w.0), oy), false),
+        (Point::new(Mm(ox.0 + w.0), Mm(oy.0 + h.0)), false),
+        (Point::new(ox, Mm(oy.0 + h.0)), false),
+    ]
+}
+
+fn add_rect_polygon(layer: &PdfLayerReference, ox: Mm, oy: Mm, w: Mm, h: Mm, mode: PaintMode) {
+    layer.add_polygon(Polygon {
+        rings: vec![rect_points(ox, oy, w, h)],
+        mode,
+        winding_order: WindingOrder::NonZero,
+    });
 }
 
 /// Corridors are stored with their path coordinate as the rect's leading edge, so they
@@ -42,33 +61,14 @@ fn draw_corridor_segment(layer: &PdfLayerReference, rect: &Rect, page_height_mm:
         (Mm(ox.0 - half), oy)
     };
 
-    let line = Line {
-        points: vec![
-            (Point::new(ox, oy), false),
-            (Point::new(Mm(ox.0 + w.0), oy), false),
-            (Point::new(Mm(ox.0 + w.0), Mm(oy.0 + h.0)), false),
-            (Point::new(ox, Mm(oy.0 + h.0)), false),
-        ],
-        is_closed: true,
-    };
-    layer.add_line(line);
+    add_rect_polygon(layer, ox, oy, w, h, PaintMode::Fill);
 }
 
-fn draw_outline_rect(layer: &PdfLayerReference, rect: &Rect, page_height_mm: f32, tile_size: f32) {
+fn draw_room(layer: &PdfLayerReference, rect: &Rect, page_height_mm: f32, tile_size: f32) {
     let (ox, oy) = rect_origin(rect, page_height_mm, tile_size);
     let w = tile_to_mm(rect.width, tile_size);
     let h = tile_to_mm(rect.height, tile_size);
-
-    let line = Line {
-        points: vec![
-            (Point::new(ox, oy), false),
-            (Point::new(Mm(ox.0 + w.0), oy), false),
-            (Point::new(Mm(ox.0 + w.0), Mm(oy.0 + h.0)), false),
-            (Point::new(ox, Mm(oy.0 + h.0)), false),
-        ],
-        is_closed: true,
-    };
-    layer.add_line(line);
+    add_rect_polygon(layer, ox, oy, w, h, PaintMode::FillStroke);
 }
 
 pub fn draw_map(
@@ -78,9 +78,9 @@ pub fn draw_map(
     page_height_mm: f32,
     tile_size: f32,
 ) {
-    layer.set_fill_color(printpdf::Color::Rgb(Rgb::new(0.75, 0.75, 0.75, None)));
-    layer.set_outline_color(printpdf::Color::Rgb(Rgb::new(0.5, 0.5, 0.5, None)));
-    layer.set_outline_thickness(0.5);
+    // Draw corridors first (grey fill, no outline)
+    layer.set_fill_color(printpdf::Color::Rgb(Rgb::new(0.6, 0.6, 0.6, None)));
+    layer.set_outline_thickness(0.0);
 
     for corridor in corridors {
         for segment in &corridor.segments {
@@ -88,12 +88,13 @@ pub fn draw_map(
         }
     }
 
+    // Draw rooms second — white fill covers any corridor passing through, black outline on top
     layer.set_fill_color(printpdf::Color::Rgb(Rgb::new(1.0, 1.0, 1.0, None)));
     layer.set_outline_color(printpdf::Color::Rgb(Rgb::new(0.0, 0.0, 0.0, None)));
     layer.set_outline_thickness(1.0);
 
     for room in rooms {
-        draw_outline_rect(layer, &room.bounds, page_height_mm, tile_size);
+        draw_room(layer, &room.bounds, page_height_mm, tile_size);
     }
 
     layer.set_fill_color(printpdf::Color::Rgb(Rgb::new(0.0, 0.0, 0.0, None)));
