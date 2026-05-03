@@ -1,13 +1,17 @@
+use std::f32::consts::PI;
+
 use printpdf::path::{PaintMode, WindingOrder};
 use printpdf::{Mm, PdfLayerReference, Point, Polygon, Rgb};
 
-use crate::generator::bsp::{Rect, Room};
+use crate::generator::bsp::{Rect, Room, RoomShape};
 use crate::generator::corridor::Corridor;
 
 const MAP_MARGIN_MM: f32 = 15.0;
 const MAX_TILE_SIZE_MM: f32 = 5.0;
 
-/// Compute a tile size that fits the full dungeon grid within the page with margins.
+/// Number of polygon vertices used to approximate a round room.
+const ELLIPSE_STEPS: usize = 32;
+
 pub fn compute_tile_size(page_w_mm: f32, page_h_mm: f32, grid_w: u32, grid_h: u32) -> f32 {
     let available_w = page_w_mm - 2.0 * MAP_MARGIN_MM;
     let available_h = page_h_mm - 2.0 * MAP_MARGIN_MM;
@@ -36,9 +40,20 @@ fn rect_points(ox: Mm, oy: Mm, w: Mm, h: Mm) -> Vec<(Point, bool)> {
     ]
 }
 
-fn add_rect_polygon(layer: &PdfLayerReference, ox: Mm, oy: Mm, w: Mm, h: Mm, mode: PaintMode) {
+/// Regular n-gon inscribed in an ellipse with semi-axes rx × ry, centred at (cx, cy).
+/// `start_angle` rotates the first vertex (radians, standard maths convention: 0 = right).
+fn n_gon_points(cx: f32, cy: f32, rx: f32, ry: f32, n: usize, start_angle: f32) -> Vec<(Point, bool)> {
+    (0..n)
+        .map(|i| {
+            let angle = start_angle + i as f32 * 2.0 * PI / n as f32;
+            (Point::new(Mm(cx + rx * angle.cos()), Mm(cy + ry * angle.sin())), false)
+        })
+        .collect()
+}
+
+fn add_polygon(layer: &PdfLayerReference, points: Vec<(Point, bool)>, mode: PaintMode) {
     layer.add_polygon(Polygon {
-        rings: vec![rect_points(ox, oy, w, h)],
+        rings: vec![points],
         mode,
         winding_order: WindingOrder::NonZero,
     });
@@ -46,7 +61,6 @@ fn add_rect_polygon(layer: &PdfLayerReference, ox: Mm, oy: Mm, w: Mm, h: Mm, mod
 
 /// Corridors are stored with their path coordinate as the rect's leading edge, so they
 /// need to be shifted by half a tile in their narrow dimension to be centred on the path.
-/// Horizontal segments (height == 1) shift upward; vertical segments (width == 1) shift left.
 fn draw_corridor_segment(layer: &PdfLayerReference, rect: &Rect, page_height_mm: f32, tile_size: f32) {
     let (ox, oy) = rect_origin(rect, page_height_mm, tile_size);
     let w = tile_to_mm(rect.width, tile_size);
@@ -54,21 +68,37 @@ fn draw_corridor_segment(layer: &PdfLayerReference, rect: &Rect, page_height_mm:
     let half = tile_size / 2.0;
 
     let (ox, oy) = if rect.height <= rect.width {
-        // Horizontal segment: shift up by half a tile (PDF Y increases upward)
-        (ox, Mm(oy.0 + half))
+        (ox, Mm(oy.0 + half))  // horizontal: shift up
     } else {
-        // Vertical segment: shift left by half a tile
-        (Mm(ox.0 - half), oy)
+        (Mm(ox.0 - half), oy)  // vertical: shift left
     };
 
-    add_rect_polygon(layer, ox, oy, w, h, PaintMode::Fill);
+    add_polygon(layer, rect_points(ox, oy, w, h), PaintMode::Fill);
 }
 
-fn draw_room(layer: &PdfLayerReference, rect: &Rect, page_height_mm: f32, tile_size: f32) {
-    let (ox, oy) = rect_origin(rect, page_height_mm, tile_size);
-    let w = tile_to_mm(rect.width, tile_size);
-    let h = tile_to_mm(rect.height, tile_size);
-    add_rect_polygon(layer, ox, oy, w, h, PaintMode::FillStroke);
+fn draw_room(layer: &PdfLayerReference, room: &Room, page_height_mm: f32, tile_size: f32) {
+    let (ox, oy) = rect_origin(&room.bounds, page_height_mm, tile_size);
+    let w = tile_to_mm(room.bounds.width, tile_size);
+    let h = tile_to_mm(room.bounds.height, tile_size);
+
+    // Centre of the room in PDF mm coordinates
+    let cx = ox.0 + w.0 / 2.0;
+    let cy = oy.0 + h.0 / 2.0;
+    let rx = w.0 / 2.0;
+    let ry = h.0 / 2.0;
+
+    let points = match room.shape {
+        RoomShape::Rectangle => rect_points(ox, oy, w, h),
+        // Round: 32-vertex ellipse inscribed in the bounding box
+        RoomShape::Round => n_gon_points(cx, cy, rx, ry, ELLIPSE_STEPS, 0.0),
+        // Hexagonal: pointy-top — first vertex at 90° (top centre)
+        RoomShape::Hexagonal => n_gon_points(cx, cy, rx, ry, 6, PI / 2.0),
+        // Octagonal: flat-top — vertices at 22.5° intervals starting at 22.5°,
+        // giving horizontal flat edges at top/bottom and vertical flat edges at left/right
+        RoomShape::Octagonal => n_gon_points(cx, cy, rx, ry, 8, PI / 8.0),
+    };
+
+    add_polygon(layer, points, PaintMode::FillStroke);
 }
 
 pub fn draw_map(
@@ -78,7 +108,6 @@ pub fn draw_map(
     page_height_mm: f32,
     tile_size: f32,
 ) {
-    // Draw corridors first (grey fill, no outline)
     layer.set_fill_color(printpdf::Color::Rgb(Rgb::new(0.6, 0.6, 0.6, None)));
     layer.set_outline_thickness(0.0);
 
@@ -88,13 +117,12 @@ pub fn draw_map(
         }
     }
 
-    // Draw rooms second — white fill covers any corridor passing through, black outline on top
     layer.set_fill_color(printpdf::Color::Rgb(Rgb::new(1.0, 1.0, 1.0, None)));
     layer.set_outline_color(printpdf::Color::Rgb(Rgb::new(0.0, 0.0, 0.0, None)));
     layer.set_outline_thickness(1.0);
 
     for room in rooms {
-        draw_room(layer, &room.bounds, page_height_mm, tile_size);
+        draw_room(layer, room, page_height_mm, tile_size);
     }
 
     layer.set_fill_color(printpdf::Color::Rgb(Rgb::new(0.0, 0.0, 0.0, None)));

@@ -34,12 +34,34 @@ pub struct RoomCountRange {
     pub max: u32,
 }
 
+/// Percentage weights for each room shape — values are relative, not required to sum to 100.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RoomShapeWeights {
+    pub rectangle: f32,
+    pub round: f32,
+    pub hexagonal: f32,
+    pub octagonal: f32,
+}
+
+impl Default for RoomShapeWeights {
+    fn default() -> Self {
+        RoomShapeWeights {
+            rectangle: 85.0,
+            round: 5.0,
+            hexagonal: 5.0,
+            octagonal: 5.0,
+        }
+    }
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct DungeonConfig {
     pub width: u32,
     pub height: u32,
     pub room_count: RoomCountRange,
     pub seed: Option<u64>,
+    #[serde(default)]
+    pub room_shapes: RoomShapeWeights,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -72,6 +94,7 @@ impl Default for Config {
                 height: 50,
                 room_count: RoomCountRange { min: 6, max: 14 },
                 seed: None,
+                room_shapes: RoomShapeWeights::default(),
             },
             difficulty: Difficulty::Medium,
             theme: Theme::Classic,

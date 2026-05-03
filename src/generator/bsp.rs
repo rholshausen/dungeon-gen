@@ -1,7 +1,7 @@
 use rand::Rng;
 use rand_chacha::ChaCha8Rng;
 
-use crate::config::DungeonConfig;
+use crate::config::{DungeonConfig, RoomShapeWeights};
 use crate::data::creature::Creature;
 use crate::data::event::Event;
 
@@ -34,10 +34,19 @@ impl Rect {
     }
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum RoomShape {
+    Rectangle,
+    Round,
+    Hexagonal,
+    Octagonal,
+}
+
 #[derive(Debug, Clone)]
 pub struct Room {
     pub id: usize,
     pub bounds: Rect,
+    pub shape: RoomShape,
     pub assigned_event: Option<Event>,
     pub assigned_creatures: Vec<Creature>,
 }
@@ -47,9 +56,24 @@ impl Room {
         Room {
             id,
             bounds,
+            shape: RoomShape::Rectangle,
             assigned_event: None,
             assigned_creatures: Vec::new(),
         }
+    }
+}
+
+fn pick_shape(weights: &RoomShapeWeights, rng: &mut ChaCha8Rng) -> RoomShape {
+    let total = weights.rectangle + weights.round + weights.hexagonal + weights.octagonal;
+    let roll = rng.gen_range(0.0f32..total);
+    if roll < weights.rectangle {
+        RoomShape::Rectangle
+    } else if roll < weights.rectangle + weights.round {
+        RoomShape::Round
+    } else if roll < weights.rectangle + weights.round + weights.hexagonal {
+        RoomShape::Hexagonal
+    } else {
+        RoomShape::Octagonal
     }
 }
 
@@ -128,10 +152,13 @@ pub fn generate(config: &DungeonConfig, rng: &mut ChaCha8Rng) -> Vec<Room> {
     let target = rng.gen_range(config.room_count.min..=config.room_count.max) as usize;
     if rooms.len() > target {
         rooms.truncate(target);
-        // Re-assign IDs after truncation
         for (i, room) in rooms.iter_mut().enumerate() {
             room.id = i;
         }
+    }
+
+    for room in rooms.iter_mut() {
+        room.shape = pick_shape(&config.room_shapes, rng);
     }
 
     rooms

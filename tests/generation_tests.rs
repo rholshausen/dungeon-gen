@@ -1,4 +1,4 @@
-use dungeon_gen::config::{DungeonConfig, RoomCountRange};
+use dungeon_gen::config::{DungeonConfig, RoomCountRange, RoomShapeWeights};
 use dungeon_gen::generator::bsp;
 use dungeon_gen::generator::corridor;
 use dungeon_gen::seed::make_rng;
@@ -10,6 +10,7 @@ fn generates_rooms_within_count_range() {
         height: 50,
         room_count: RoomCountRange { min: 6, max: 14 },
         seed: Some(42),
+        room_shapes: RoomShapeWeights::default(),
     };
     let (mut rng, _) = make_rng(cfg.seed);
     let rooms = bsp::generate(&cfg, &mut rng);
@@ -24,6 +25,7 @@ fn same_seed_produces_same_rooms() {
         height: 50,
         room_count: RoomCountRange { min: 6, max: 14 },
         seed: Some(12345),
+        room_shapes: RoomShapeWeights::default(),
     };
 
     let (mut rng1, _) = make_rng(cfg.seed);
@@ -48,6 +50,7 @@ fn corridors_connect_rooms() {
         height: 50,
         room_count: RoomCountRange { min: 4, max: 8 },
         seed: Some(99),
+        room_shapes: RoomShapeWeights::default(),
     };
     let (mut rng, _) = make_rng(cfg.seed);
     let rooms = bsp::generate(&cfg, &mut rng);

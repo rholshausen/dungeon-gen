@@ -1,4 +1,4 @@
-use dungeon_gen::config::{DungeonConfig, RoomCountRange};
+use dungeon_gen::config::{DungeonConfig, RoomCountRange, RoomShapeWeights};
 use dungeon_gen::generator::bsp;
 use dungeon_gen::seed::make_rng;
 
@@ -10,6 +10,7 @@ fn fixed_seed_room_count_regression() {
         height: 50,
         room_count: RoomCountRange { min: 6, max: 14 },
         seed: Some(777),
+        room_shapes: RoomShapeWeights::default(),
     };
     let (mut rng, _) = make_rng(cfg.seed);
     let rooms = bsp::generate(&cfg, &mut rng);

@@ -4,6 +4,12 @@ Config(
         height: 50,
         room_count: (min: 6, max: 14),
         seed: None,
+        room_shapes: (
+            rectangle: 85.0,
+            round: 5.0,
+            hexagonal: 5.0,
+            octagonal: 5.0,
+        ),
     ),
     difficulty: Medium,
     theme: Classic,
