@@ -25,10 +25,22 @@ fn rect_origin(rect: &Rect, page_height_mm: f32, tile_size: f32) -> (Mm, Mm) {
     (Mm(x), Mm(y))
 }
 
-fn draw_filled_rect(layer: &PdfLayerReference, rect: &Rect, page_height_mm: f32, tile_size: f32) {
+/// Corridors are stored with their path coordinate as the rect's leading edge, so they
+/// need to be shifted by half a tile in their narrow dimension to be centred on the path.
+/// Horizontal segments (height == 1) shift upward; vertical segments (width == 1) shift left.
+fn draw_corridor_segment(layer: &PdfLayerReference, rect: &Rect, page_height_mm: f32, tile_size: f32) {
     let (ox, oy) = rect_origin(rect, page_height_mm, tile_size);
     let w = tile_to_mm(rect.width, tile_size);
     let h = tile_to_mm(rect.height, tile_size);
+    let half = tile_size / 2.0;
+
+    let (ox, oy) = if rect.height <= rect.width {
+        // Horizontal segment: shift up by half a tile (PDF Y increases upward)
+        (ox, Mm(oy.0 + half))
+    } else {
+        // Vertical segment: shift left by half a tile
+        (Mm(ox.0 - half), oy)
+    };
 
     let line = Line {
         points: vec![
@@ -72,7 +84,7 @@ pub fn draw_map(
 
     for corridor in corridors {
         for segment in &corridor.segments {
-            draw_filled_rect(layer, segment, page_height_mm, tile_size);
+            draw_corridor_segment(layer, segment, page_height_mm, tile_size);
         }
     }
 
