@@ -23,8 +23,11 @@ pub fn render(
     config: &OutputConfig,
     seed: u64,
     output: &Path,
+    grid_w: u32,
+    grid_h: u32,
 ) -> Result<()> {
     let (page_w, page_h) = paper_dims(config.paper_size);
+    let tile_size = map::compute_tile_size(page_w.0, page_h.0, grid_w, grid_h);
 
     let (doc, page1, layer1) = PdfDocument::new("Dungeon", page_w, page_h, "Map");
     let font = doc.add_builtin_font(BuiltinFont::Courier)?;
@@ -32,11 +35,11 @@ pub fn render(
 
     // --- Page 1: Map ---
     let map_layer = doc.get_page(page1).get_layer(layer1);
-    map::draw_map(&map_layer, rooms, corridors, page_h.0);
+    map::draw_map(&map_layer, rooms, corridors, page_h.0, tile_size);
 
     // Room number labels
     for room in rooms {
-        let (lx, ly) = map::room_label_position(room, page_h.0);
+        let (lx, ly) = map::room_label_position(room, page_h.0, tile_size);
         map_layer.use_text(format!("{}", room.id + 1), 7.0, lx, ly, &bold_font);
     }
 

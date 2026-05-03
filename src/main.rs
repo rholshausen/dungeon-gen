@@ -51,6 +51,8 @@ fn main() -> Result<()> {
         &cfg.output,
         seed_used,
         &output_path,
+        cfg.dungeon.width,
+        cfg.dungeon.height,
     )?;
 
     println!(
