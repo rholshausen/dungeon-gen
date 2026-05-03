@@ -3,8 +3,11 @@ use std::f32::consts::PI;
 use printpdf::path::{PaintMode, WindingOrder};
 use printpdf::{Mm, PdfLayerReference, Point, Polygon, Rgb};
 
+use printpdf::IndirectFontRef;
+
 use crate::generator::bsp::{Rect, Room, RoomShape};
-use crate::generator::corridor::Corridor;
+use crate::generator::corridor::{Corridor, Door, DoorKind, lock_picking_difficulty};
+use crate::config::Difficulty;
 
 const MAP_MARGIN_MM: f32 = 15.0;
 const MAX_TILE_SIZE_MM: f32 = 5.0;
@@ -105,6 +108,68 @@ fn draw_room(layer: &PdfLayerReference, room: &Room, page_height_mm: f32, tile_s
     add_polygon(layer, points, PaintMode::FillStroke);
 }
 
+/// Draw a single door straddling the wall between a room and its corridor.
+///
+/// Door rectangle dimensions:
+///   thickness (narrow axis) = 30 % of tile_size
+///   span      (wide axis)   = 100 % of tile_size (full corridor width)
+///
+/// Coordinate conventions (matching draw_corridor_segment):
+///   horizontal corridor centre y = page_h − MARGIN − door.y × tile_size
+///   vertical   corridor centre x = MARGIN + door.x × tile_size
+fn draw_door(layer: &PdfLayerReference, door: &Door, page_height_mm: f32, tile_size: f32) {
+    let thick = tile_size * 0.30;
+    let span = tile_size;
+
+    let (ox, oy, dw, dh) = if door.in_horizontal_corridor {
+        let cx = MAP_MARGIN_MM + door.x as f32 * tile_size;
+        let cy = page_height_mm - MAP_MARGIN_MM - door.y as f32 * tile_size;
+        (cx - thick / 2.0, cy - span / 2.0, thick, span)
+    } else {
+        let cx = MAP_MARGIN_MM + door.x as f32 * tile_size;
+        let cy = page_height_mm - MAP_MARGIN_MM - door.y as f32 * tile_size;
+        (cx - span / 2.0, cy - thick / 2.0, span, thick)
+    };
+
+    match door.kind {
+        DoorKind::Wooden => {
+            layer.set_fill_color(printpdf::Color::Rgb(Rgb::new(1.0, 1.0, 1.0, None)));
+            layer.set_outline_color(printpdf::Color::Rgb(Rgb::new(0.0, 0.0, 0.0, None)));
+            layer.set_outline_thickness(0.5);
+        }
+        DoorKind::Iron => {
+            layer.set_fill_color(printpdf::Color::Rgb(Rgb::new(0.45, 0.45, 0.45, None)));
+            layer.set_outline_color(printpdf::Color::Rgb(Rgb::new(0.0, 0.0, 0.0, None)));
+            layer.set_outline_thickness(0.8);
+        }
+        DoorKind::Secret => {
+            layer.set_fill_color(printpdf::Color::Rgb(Rgb::new(0.85, 0.85, 0.85, None)));
+            layer.set_outline_color(printpdf::Color::Rgb(Rgb::new(0.55, 0.55, 0.55, None)));
+            layer.set_outline_thickness(0.3);
+        }
+    }
+
+    add_polygon(
+        layer,
+        rect_points(Mm(ox), Mm(oy), Mm(dw), Mm(dh)),
+        PaintMode::FillStroke,
+    );
+
+    // Locked indicator: small filled square centred on the door.
+    if door.locked {
+        let dot = thick * 0.5;
+        let dx = ox + dw / 2.0 - dot / 2.0;
+        let dy = oy + dh / 2.0 - dot / 2.0;
+        layer.set_fill_color(printpdf::Color::Rgb(Rgb::new(0.0, 0.0, 0.0, None)));
+        layer.set_outline_thickness(0.0);
+        add_polygon(
+            layer,
+            rect_points(Mm(dx), Mm(dy), Mm(dot), Mm(dot)),
+            PaintMode::Fill,
+        );
+    }
+}
+
 pub fn draw_map(
     layer: &PdfLayerReference,
     rooms: &[Room],
@@ -131,6 +196,13 @@ pub fn draw_map(
 
     for room in rooms {
         draw_room(layer, room, page_height_mm, tile_size);
+    }
+
+    // Doors drawn last so they appear on top of room fills, straddling the wall.
+    for corridor in corridors {
+        for door in &corridor.doors {
+            draw_door(layer, door, page_height_mm, tile_size);
+        }
     }
 
     layer.set_fill_color(printpdf::Color::Rgb(Rgb::new(0.0, 0.0, 0.0, None)));
@@ -187,4 +259,89 @@ pub fn corridor_label_position(corridor: &Corridor, rooms: &[Room], page_height_
     };
 
     Some((Mm(cx), Mm(cy)))
+}
+
+/// Draw a door-type legend box in the bottom-right of the page.
+///
+/// The box has a white fill so it sits cleanly over map content. Lock-picking difficulties are
+/// derived from the dungeon difficulty and shown for wooden and iron locked doors.
+pub fn draw_legend(
+    layer: &PdfLayerReference,
+    font: &IndirectFontRef,
+    bold_font: &IndirectFontRef,
+    page_width_mm: f32,
+    difficulty: Difficulty,
+) {
+    // Box geometry
+    let bx = page_width_mm - 82.0;
+    let by = 6.0_f32;
+    let bw = 74.0_f32;
+    let bh = 40.0_f32;
+
+    // White background with thin border
+    layer.set_fill_color(printpdf::Color::Rgb(Rgb::new(1.0, 1.0, 1.0, None)));
+    layer.set_outline_color(printpdf::Color::Rgb(Rgb::new(0.0, 0.0, 0.0, None)));
+    layer.set_outline_thickness(0.5);
+    add_polygon(layer, rect_points(Mm(bx), Mm(by), Mm(bw), Mm(bh)), PaintMode::FillStroke);
+
+    layer.use_text("Door Legend", 8.0, Mm(bx + 3.0), Mm(by + bh - 6.5), bold_font);
+
+    // Mini symbol dimensions (horizontal door, viewed from above)
+    let sym_x = bx + 4.0;
+    let sym_w = 6.0_f32;
+    let sym_h = 1.8_f32;
+    let lbl_x = bx + 13.5;
+
+    // Row y-centres inside the box (top to bottom)
+    let row_y = [by + 30.0, by + 24.0, by + 18.0, by + 12.0, by + 7.0];
+
+    // Helper closures ---------------------------------------------------
+
+    // Draw a mini symbol rectangle at row_y[i], then reset fill to black so the
+    // following use_text call inherits black rather than the symbol's fill colour.
+    let mini = |ry: f32, fill: (f32, f32, f32), stroke: (f32, f32, f32), line_w: f32| {
+        layer.set_fill_color(printpdf::Color::Rgb(Rgb::new(fill.0, fill.1, fill.2, None)));
+        layer.set_outline_color(printpdf::Color::Rgb(Rgb::new(stroke.0, stroke.1, stroke.2, None)));
+        layer.set_outline_thickness(line_w);
+        add_polygon(
+            layer,
+            rect_points(Mm(sym_x), Mm(ry - sym_h / 2.0), Mm(sym_w), Mm(sym_h)),
+            PaintMode::FillStroke,
+        );
+        layer.set_fill_color(printpdf::Color::Rgb(Rgb::new(0.0, 0.0, 0.0, None)));
+    };
+
+    // Row 0 — Wooden door
+    mini(row_y[0], (1.0, 1.0, 1.0), (0.0, 0.0, 0.0), 0.5_f32);
+    layer.use_text("Wooden door", 7.0, Mm(lbl_x), Mm(row_y[0] - 1.3), font);
+
+    // Row 1 — Iron door
+    mini(row_y[1], (0.45, 0.45, 0.45), (0.0, 0.0, 0.0), 0.8_f32);
+    layer.use_text("Iron door (reinforced)", 7.0, Mm(lbl_x), Mm(row_y[1] - 1.3), font);
+
+    // Row 2 — Secret door
+    mini(row_y[2], (0.85, 0.85, 0.85), (0.55, 0.55, 0.55), 0.3_f32);
+    layer.use_text("Secret door", 7.0, Mm(lbl_x), Mm(row_y[2] - 1.3), font);
+
+    // Row 3 — Locked indicator (filled dot)
+    let dot = 2.0_f32;
+    layer.set_fill_color(printpdf::Color::Rgb(Rgb::new(0.0, 0.0, 0.0, None)));
+    layer.set_outline_thickness(0.0);
+    add_polygon(
+        layer,
+        rect_points(Mm(sym_x + sym_w / 2.0 - dot / 2.0), Mm(row_y[3] - dot / 2.0), Mm(dot), Mm(dot)),
+        PaintMode::Fill,
+    );
+    layer.use_text("Locked door indicator", 7.0, Mm(lbl_x), Mm(row_y[3] - 1.3), font);
+
+    // Row 4 — Lock-pick difficulty note
+    let wood_diff = lock_picking_difficulty(DoorKind::Wooden, difficulty);
+    let iron_diff = lock_picking_difficulty(DoorKind::Iron, difficulty);
+    layer.use_text(
+        format!("Pick: wooden={wood_diff}  iron={iron_diff}"),
+        6.0,
+        Mm(bx + 3.0),
+        Mm(row_y[4] - 1.3),
+        font,
+    );
 }

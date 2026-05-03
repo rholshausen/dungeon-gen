@@ -3,7 +3,7 @@ use std::path::Path;
 use anyhow::Result;
 use printpdf::{BuiltinFont, IndirectFontRef, Mm, PdfDocument, PdfLayerReference};
 
-use crate::config::{OutputConfig, PaperSize};
+use crate::config::{Difficulty, OutputConfig, PaperSize};
 use crate::data::creature::Creature;
 use crate::generator::bsp::Room;
 use crate::generator::corridor::Corridor;
@@ -50,6 +50,7 @@ pub fn render(
     corridors: &[Corridor],
     creatures_used: &[Creature],
     config: &OutputConfig,
+    difficulty: Difficulty,
     seed: u64,
     output: &Path,
     grid_w: u32,
@@ -95,6 +96,9 @@ pub fn render(
             map_layer.use_text(label, LABEL_PT, cx, cy, &font);
         }
     }
+
+    // Door-type legend (bottom-right corner of map page)
+    map::draw_legend(&map_layer, &font, &bold_font, page_w.0, difficulty);
 
     // Footer: seed
     map_layer.use_text(
