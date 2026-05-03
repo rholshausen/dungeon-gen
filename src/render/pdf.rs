@@ -92,9 +92,9 @@ pub fn render(
                     &font,
                 );
                 y -= 5.0;
-                if let Some(dc) = event.dc {
+                if let Some(ref rating) = event.difficulty_rating {
                     notes_layer.use_text(
-                        format!("  DC: {dc}"),
+                        format!("  Difficulty: {rating}"),
                         9.0,
                         Mm(10.0),
                         Mm(y),
@@ -146,21 +146,20 @@ pub fn render(
                 break;
             }
 
-            stat_layer.use_text(
-                format!(
-                    "{} — CR {} | HP: {} (avg {:.0}) | AC: {}",
-                    creature.name,
-                    creature.cr,
-                    creature.hp.notation(),
-                    creature.hp.average(),
-                    creature.ac,
-                ),
-                10.0,
-                Mm(10.0),
-                Mm(y),
-                &bold_font,
-            );
-            y -= 6.0;
+            stat_layer.use_text(&creature.name, 10.0, Mm(10.0), Mm(y), &bold_font);
+            y -= 5.0;
+
+            // Render whatever stats the RON file defined — label: value pairs
+            let stat_line = creature
+                .stats
+                .iter()
+                .map(|s| format!("{}: {}", s.label, s.value))
+                .collect::<Vec<_>>()
+                .join("  |  ");
+            if !stat_line.is_empty() {
+                stat_layer.use_text(&stat_line, 9.0, Mm(12.0), Mm(y), &font);
+                y -= 5.0;
+            }
 
             stat_layer.use_text(&creature.description.appearance, 9.0, Mm(12.0), Mm(y), &font);
             y -= 5.0;
@@ -168,11 +167,14 @@ pub fn render(
             y -= 5.0;
 
             for attack in &creature.attacks {
+                let attack_stats = attack
+                    .stats
+                    .iter()
+                    .map(|s| format!("{}: {}", s.label, s.value))
+                    .collect::<Vec<_>>()
+                    .join("  |  ");
                 stat_layer.use_text(
-                    format!(
-                        "  {} +{} to hit | {} {:?}",
-                        attack.name, attack.bonus, attack.damage.0.notation(), attack.damage.1
-                    ),
+                    format!("  {}  {}", attack.name, attack_stats),
                     9.0,
                     Mm(10.0),
                     Mm(y),

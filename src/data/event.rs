@@ -12,7 +12,9 @@ pub struct Event {
     pub id: String,
     pub name: String,
     pub trigger: String,
-    pub dc: Option<u32>,
+    /// Free-form difficulty rating in whatever notation the game system uses
+    /// (e.g. `"DC 15"` for D&D, `"TN 12"` for GURPS, `"Difficulty 3"` for WFRP).
+    pub difficulty_rating: Option<String>,
     pub effect: String,
     pub themes: Vec<Theme>,
     pub difficulty: Vec<Difficulty>,

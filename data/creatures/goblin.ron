@@ -1,8 +1,6 @@
+// D&D 5e stat block
 Creature(
     name: "Goblin",
-    cr: 0.25,
-    hp: Dice(2, 6, 0),
-    ac: 15,
     tags: [Small, Humanoid, Common],
     themes: [Classic, Ruins],
     difficulty: [Easy, Medium],
@@ -10,11 +8,18 @@ Creature(
         appearance: "A small, wiry creature with yellowed teeth and beady eyes.",
         tactics: "Goblins prefer ambushes and flee when outnumbered.",
     ),
+    stats: [
+        (label: "CR",  value: "1/4"),
+        (label: "HP",  value: "2d6"),
+        (label: "AC",  value: "15"),
+    ],
     attacks: [
         Attack(
             name: "Scimitar",
-            bonus: 4,
-            damage: Damage(Dice(1, 6, 2), Slashing),
+            stats: [
+                (label: "Bonus",  value: "+4"),
+                (label: "Damage", value: "1d6+2 Slashing"),
+            ],
         ),
     ],
 )
