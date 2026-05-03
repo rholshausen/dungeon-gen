@@ -59,18 +59,22 @@ fn add_polygon(layer: &PdfLayerReference, points: Vec<(Point, bool)>, mode: Pain
     });
 }
 
-/// Corridors are stored with their path coordinate as the rect's leading edge, so they
-/// need to be shifted by half a tile in their narrow dimension to be centred on the path.
+/// Each corridor segment is centred on its path (half-tile shift in the narrow axis) and
+/// extended by half a tile at both ends in the path axis. The room-end extension hides under
+/// the room's white fill; the junction-end extension reaches exactly the outer edge of the
+/// crossing segment, closing the corner without creating a cross arm.
 fn draw_corridor_segment(layer: &PdfLayerReference, rect: &Rect, page_height_mm: f32, tile_size: f32) {
     let (ox, oy) = rect_origin(rect, page_height_mm, tile_size);
     let w = tile_to_mm(rect.width, tile_size);
     let h = tile_to_mm(rect.height, tile_size);
     let half = tile_size / 2.0;
 
-    let (ox, oy) = if rect.height <= rect.width {
-        (ox, Mm(oy.0 + half))  // horizontal: shift up
+    // For horizontal segments: centre in y, extend both x ends by half a tile.
+    // For vertical segments:   centre in x, extend both y ends by half a tile.
+    let (ox, oy, w, h) = if rect.height <= rect.width {
+        (Mm(ox.0 - half), Mm(oy.0 + half), Mm(w.0 + tile_size), h)
     } else {
-        (Mm(ox.0 - half), oy)  // vertical: shift left
+        (Mm(ox.0 - half), Mm(oy.0 - half), w, Mm(h.0 + tile_size))
     };
 
     add_polygon(layer, rect_points(ox, oy, w, h), PaintMode::Fill);
@@ -113,6 +117,10 @@ pub fn draw_map(
 
     for corridor in corridors {
         for segment in &corridor.segments {
+            // Skip degenerate segments (can arise when two room centres share a coordinate)
+            if segment.width == 0 || segment.height == 0 {
+                continue;
+            }
             draw_corridor_segment(layer, segment, page_height_mm, tile_size);
         }
     }
