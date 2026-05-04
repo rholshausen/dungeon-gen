@@ -308,18 +308,23 @@ pub fn corridor_label_position(corridor: &Corridor, rooms: &[Room], page_height_
             // Grid-space centre of this segment.
             let scx = s.x as f32 + s.width as f32 / 2.0;
             let scy = s.y as f32 + s.height as f32 / 2.0;
-            // Minimum squared distance to any room centre (tile units).
+            // Minimum squared distance from the segment centre to the nearest edge of any room.
+            // Using bounding-box distance (not centre distance) so labels near room walls score
+            // lower than labels in genuinely open corridor space.
             let min_dist_sq = rooms
                 .iter()
                 .map(|r| {
-                    let rcx = r.bounds.x as f32 + r.bounds.width as f32 / 2.0;
-                    let rcy = r.bounds.y as f32 + r.bounds.height as f32 / 2.0;
-                    let dx = scx - rcx;
-                    let dy = scy - rcy;
+                    let rx = r.bounds.x as f32;
+                    let ry = r.bounds.y as f32;
+                    let rr = rx + r.bounds.width as f32;
+                    let rb = ry + r.bounds.height as f32;
+                    let nx = scx.clamp(rx, rr);
+                    let ny = scy.clamp(ry, rb);
+                    let dx = scx - nx;
+                    let dy = scy - ny;
                     dx * dx + dy * dy
                 })
                 .fold(f32::INFINITY, |a, b| a.min(b));
-            // Scale and truncate to u32 so max_by_key has an Ord type.
             (min_dist_sq * 100.0) as u32
         })?;
 
