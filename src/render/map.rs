@@ -5,6 +5,7 @@ use printpdf::{Mm, PdfLayerReference, Point, Polygon, Rgb};
 
 use printpdf::IndirectFontRef;
 
+use crate::data::room_contents::DrawCommand;
 use crate::generator::bsp::{Rect, Room, RoomShape};
 use crate::generator::corridor::{Corridor, Door, DoorKind, lock_picking_difficulty};
 use crate::config::Difficulty;
@@ -247,6 +248,67 @@ pub fn draw_map(
     }
 
     layer.set_fill_color(printpdf::Color::Rgb(Rgb::new(0.0, 0.0, 0.0, None)));
+}
+
+/// Draw each room's icon (if any) centred on the room, scaled to fit inside the room shape.
+///
+/// Icons are defined as `Vec<DrawCommand>` in the RON data files using normalised (−1..1)
+/// coordinates. The renderer transforms them to PDF space without any per-type Rust code.
+/// Drawn after room fills so the icon sits on the white interior, and before room-number
+/// labels so the circled number appears on top.
+pub fn draw_room_icons(
+    layer: &PdfLayerReference,
+    rooms: &[Room],
+    page_height_mm: f32,
+    tile_size: f32,
+) {
+    let icon_colour = printpdf::Color::Rgb(Rgb::new(0.55, 0.55, 0.55, None));
+
+    for room in rooms {
+        let Some(contents) = &room.assigned_contents else { continue };
+        if contents.icon.is_empty() { continue }
+
+        let (cx, cy) = room_label_position(room, page_height_mm, tile_size);
+        let w_mm = room.bounds.width as f32 * tile_size;
+        let h_mm = room.bounds.height as f32 * tile_size;
+        let scale = w_mm.min(h_mm) * 0.3;
+
+        layer.set_outline_color(icon_colour.clone());
+        layer.set_fill_color(icon_colour.clone());
+        layer.set_outline_thickness(0.5);
+
+        for cmd in &contents.icon {
+            match cmd {
+                DrawCommand::Line { x1, y1, x2, y2 } => {
+                    let p1 = Point::new(Mm(cx.0 + x1 * scale), Mm(cy.0 + y1 * scale));
+                    let p2 = Point::new(Mm(cx.0 + x2 * scale), Mm(cy.0 + y2 * scale));
+                    add_polygon(layer, vec![(p1, false), (p2, false)], PaintMode::Stroke);
+                }
+                DrawCommand::Rect { x, y, w, h, filled } => {
+                    let ox = Mm(cx.0 + x * scale);
+                    let oy = Mm(cy.0 + y * scale);
+                    let rw = Mm(w * scale);
+                    let rh = Mm(h * scale);
+                    let mode = if *filled { PaintMode::FillStroke } else { PaintMode::Stroke };
+                    add_polygon(layer, rect_points(ox, oy, rw, rh), mode);
+                }
+                DrawCommand::NGon { cx: ncx, cy: ncy, r, n, start_angle, filled } => {
+                    let pcx = cx.0 + ncx * scale;
+                    let pcy = cy.0 + ncy * scale;
+                    let pr = r * scale;
+                    let mode = if *filled { PaintMode::FillStroke } else { PaintMode::Stroke };
+                    add_polygon(
+                        layer,
+                        n_gon_points(pcx, pcy, pr, pr, *n as usize, *start_angle),
+                        mode,
+                    );
+                }
+            }
+        }
+    }
+
+    layer.set_fill_color(printpdf::Color::Rgb(Rgb::new(0.0, 0.0, 0.0, None)));
+    layer.set_outline_color(printpdf::Color::Rgb(Rgb::new(0.0, 0.0, 0.0, None)));
 }
 
 pub fn room_label_position(room: &Room, page_height_mm: f32, tile_size: f32) -> (Mm, Mm) {

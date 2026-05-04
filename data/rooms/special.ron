@@ -5,6 +5,12 @@ RoomContentsList([
         description: "A stone altar draped in moth-eaten cloth faces a carved idol. Offerings of coins, flowers, and candle stubs litter the base.",
         themes: [Classic, Ruins, Underdark, Crypt],
         difficulty: [Easy, Medium, Hard, Deadly],
+        // Latin cross with widened base
+        icon: [
+            Line(x1:  0.0,  y1: -0.8, x2:  0.0,  y2: 0.7),
+            Line(x1: -0.5,  y1:  0.2, x2:  0.5,  y2: 0.2),
+            Line(x1: -0.3,  y1: -0.8, x2:  0.3,  y2: -0.8),
+        ],
     ),
     RoomContents(
         id: "library",
@@ -12,6 +18,15 @@ RoomContentsList([
         description: "Shelves of mouldering tomes and scrolls line the walls. A desk holds an open journal, its last entry half-finished.",
         themes: [Classic, Ruins, Underdark],
         difficulty: [Easy, Medium, Hard, Deadly],
+        // Three shelves with vertical book dividers
+        icon: [
+            Line(x1: -0.7, y1: -0.65, x2: 0.7, y2: -0.65),
+            Line(x1: -0.7, y1:  0.0,  x2: 0.7, y2:  0.0),
+            Line(x1: -0.7, y1:  0.65, x2: 0.7, y2:  0.65),
+            Line(x1: -0.45, y1: -0.65, x2: -0.45, y2: 0.65),
+            Line(x1:  0.05, y1: -0.65, x2:  0.05, y2: 0.65),
+            Line(x1:  0.45, y1: -0.65, x2:  0.45, y2: 0.65),
+        ],
     ),
     RoomContents(
         id: "throne_room",
@@ -19,6 +34,16 @@ RoomContentsList([
         description: "A raised dais holds a weathered stone throne carved with heraldic beasts. Frayed banners hang from vaulted rafters.",
         themes: [Classic, Ruins, Crypt],
         difficulty: [Medium, Hard, Deadly],
+        // Crown outline: base band + three teeth
+        icon: [
+            Line(x1: -0.7, y1: -0.5, x2: -0.7,  y2:  0.2),
+            Line(x1: -0.7, y1:  0.2, x2: -0.35,  y2: -0.15),
+            Line(x1: -0.35, y1: -0.15, x2:  0.0, y2:  0.7),
+            Line(x1:  0.0, y1:  0.7, x2:  0.35,  y2: -0.15),
+            Line(x1:  0.35, y1: -0.15, x2:  0.7,  y2:  0.2),
+            Line(x1:  0.7, y1:  0.2, x2:  0.7,  y2: -0.5),
+            Line(x1: -0.7, y1: -0.5, x2:  0.7,  y2: -0.5),
+        ],
     ),
     RoomContents(
         id: "treasury",
@@ -26,6 +51,12 @@ RoomContentsList([
         description: "Empty iron coffers line the walls, their locks forced. Scattered coins and torn velvet bags suggest a recent looting.",
         themes: [Classic, Ruins, Underdark, Crypt],
         difficulty: [Easy, Medium, Hard, Deadly],
+        // Chest: body rectangle + lid rectangle + small filled lock circle
+        icon: [
+            Rect(x: -0.6, y: -0.45, w: 1.2, h: 0.55, filled: false),
+            Rect(x: -0.6, y:  0.1,  w: 1.2, h: 0.25, filled: false),
+            NGon(cx: 0.0, cy: -0.17, r: 0.12, n: 8, start_angle: 0.0, filled: true),
+        ],
     ),
     RoomContents(
         id: "alchemists_lab",
@@ -33,6 +64,13 @@ RoomContentsList([
         description: "Bubbling retorts, mortars, and sheaves of notes crowd a long bench. Coloured residues stain the floor in overlapping rings.",
         themes: [Classic, Underdark],
         difficulty: [Medium, Hard, Deadly],
+        // Flask: circular body with narrow rectangular neck
+        icon: [
+            NGon(cx: 0.0, cy: -0.2, r: 0.5, n: 16, start_angle: 0.0, filled: false),
+            Line(x1: -0.15, y1: 0.3,  x2: -0.15, y2: 0.72),
+            Line(x1:  0.15, y1: 0.3,  x2:  0.15, y2: 0.72),
+            Line(x1: -0.22, y1: 0.72, x2:  0.22, y2: 0.72),
+        ],
     ),
     RoomContents(
         id: "crypt_alcoves",
@@ -40,6 +78,15 @@ RoomContentsList([
         description: "Recessed niches hold stone sarcophagi, lids carved with the faces of long-dead nobles. Dust lies undisturbed.",
         themes: [Crypt, Ruins],
         difficulty: [Easy, Medium, Hard, Deadly],
+        // Coffin outline (hexagonal, wider at shoulders)
+        icon: [
+            Line(x1: -0.25, y1:  0.8,  x2:  0.25, y2:  0.8),
+            Line(x1:  0.25, y1:  0.8,  x2:  0.5,  y2:  0.35),
+            Line(x1:  0.5,  y1:  0.35, x2:  0.5,  y2: -0.7),
+            Line(x1:  0.5,  y1: -0.7,  x2: -0.5,  y2: -0.7),
+            Line(x1: -0.5,  y1: -0.7,  x2: -0.5,  y2:  0.35),
+            Line(x1: -0.5,  y1:  0.35, x2: -0.25, y2:  0.8),
+        ],
     ),
     RoomContents(
         id: "summoning_chamber",
@@ -47,6 +94,12 @@ RoomContentsList([
         description: "A binding circle of silver inlay is etched into the floor, surrounded by melted candle stubs and charred bone fragments.",
         themes: [Classic, Underdark, Crypt],
         difficulty: [Hard, Deadly],
+        // Binding circle with an inscribed X
+        icon: [
+            NGon(cx: 0.0, cy: 0.0, r: 0.7, n: 16, start_angle: 0.0, filled: false),
+            Line(x1: -0.5, y1: -0.5, x2: 0.5, y2: 0.5),
+            Line(x1:  0.5, y1: -0.5, x2: -0.5, y2: 0.5),
+        ],
     ),
     RoomContents(
         id: "war_room",
@@ -54,6 +107,12 @@ RoomContentsList([
         description: "A heavy oak table holds a cracked battle map weighted by stone markers. Broken quills and dried inkwells surround it.",
         themes: [Classic, Ruins, Underdark],
         difficulty: [Medium, Hard, Deadly],
+        // Flag on a pole
+        icon: [
+            Line(x1: -0.2, y1: -0.75, x2: -0.2, y2:  0.7),
+            Line(x1: -0.2, y1:  0.7,  x2:  0.6,  y2:  0.3),
+            Line(x1:  0.6, y1:  0.3,  x2: -0.2,  y2: -0.1),
+        ],
     ),
     RoomContents(
         id: "ossuary",
@@ -61,6 +120,12 @@ RoomContentsList([
         description: "Walls of stacked bones rise to the ceiling, skulls arranged in careful rows. A single iron lantern hangs cold and unlit above the centre.",
         themes: [Crypt, Ruins],
         difficulty: [Easy, Medium, Hard, Deadly],
+        // Skull (circle) over crossed bones
+        icon: [
+            NGon(cx: 0.0, cy: 0.35, r: 0.35, n: 12, start_angle: 0.0, filled: false),
+            Line(x1: -0.5, y1: -0.2,  x2:  0.5, y2: -0.65),
+            Line(x1:  0.5, y1: -0.2,  x2: -0.5, y2: -0.65),
+        ],
     ),
     RoomContents(
         id: "audience_chamber",
@@ -68,5 +133,11 @@ RoomContentsList([
         description: "Two rows of stone benches face a raised lectern. Carved reliefs on the walls depict scenes of judgement and supplication.",
         themes: [Classic, Ruins, Crypt],
         difficulty: [Easy, Medium, Hard, Deadly],
+        // Two rows of benches + a lectern box at the top
+        icon: [
+            Line(x1: -0.7, y1: -0.5, x2: 0.7, y2: -0.5),
+            Line(x1: -0.7, y1:  0.0, x2: 0.7, y2:  0.0),
+            Rect(x: -0.25, y: 0.35, w: 0.5, h: 0.4, filled: false),
+        ],
     ),
 ])

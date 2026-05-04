@@ -7,6 +7,21 @@ use walkdir::WalkDir;
 
 use crate::config::{Difficulty, Theme};
 
+/// A single drawing primitive in normalised (−1..1) coordinate space.
+/// The renderer scales by `min(room_w, room_h) * tile_size * 0.3` and
+/// translates to the room centre — no Rust code change needed for new room types.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum DrawCommand {
+    /// Stroke a straight line between two normalised points.
+    Line { x1: f32, y1: f32, x2: f32, y2: f32 },
+    /// Stroke (or fill+stroke) an axis-aligned rectangle.
+    /// `x`, `y` are the bottom-left corner; `w`, `h` are the dimensions (all normalised).
+    Rect { x: f32, y: f32, w: f32, h: f32, filled: bool },
+    /// Stroke (or fill+stroke) a regular n-gon inscribed in a circle of normalised radius `r`.
+    /// `start_angle` is in radians (0 = rightmost vertex).
+    NGon { cx: f32, cy: f32, r: f32, n: u32, start_angle: f32, filled: bool },
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RoomContents {
     pub id: String,
@@ -14,6 +29,8 @@ pub struct RoomContents {
     pub description: String,
     pub themes: Vec<Theme>,
     pub difficulty: Vec<Difficulty>,
+    #[serde(default)]
+    pub icon: Vec<DrawCommand>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

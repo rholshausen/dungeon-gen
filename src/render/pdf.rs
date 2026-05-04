@@ -67,6 +67,9 @@ pub fn render(
     let map_layer = doc.get_page(page1).get_layer(layer1);
     map::draw_map(&map_layer, rooms, corridors, page_w.0, page_h.0, grid_w, grid_h, tile_size);
 
+    // Room content icons — drawn on the white room fill, underneath the number labels.
+    map::draw_room_icons(&map_layer, rooms, page_h.0, tile_size);
+
     // Room number labels — white circle with centred bold number.
     map::draw_room_labels(&map_layer, &bold_font, rooms, page_h.0, tile_size);
 
