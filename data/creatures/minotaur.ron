@@ -1,0 +1,32 @@
+// D&D 5e stat block
+Creature(
+    name: "Minotaur",
+    tags: [Large, Humanoid, Boss],
+    themes: [Classic, Ruins, Underdark],
+    difficulty: [Hard, Deadly],
+    description: Description(
+        appearance: "A massive bull-headed humanoid with iron-shod hooves, bloodshot eyes, and a rust-stained greataxe.",
+        tactics: "A minotaur charges in a straight line to gore and trample, then follows up with sweeping greataxe blows.",
+    ),
+    stats: [
+        (label: "CR",  value: "3"),
+        (label: "HP",  value: "9d10+27"),
+        (label: "AC",  value: "14"),
+    ],
+    attacks: [
+        Attack(
+            name: "Greataxe",
+            stats: [
+                (label: "Bonus",  value: "+6"),
+                (label: "Damage", value: "2d12+4 Slashing"),
+            ],
+        ),
+        Attack(
+            name: "Gore",
+            stats: [
+                (label: "Bonus",  value: "+6"),
+                (label: "Damage", value: "2d8+4 Piercing"),
+            ],
+        ),
+    ],
+)

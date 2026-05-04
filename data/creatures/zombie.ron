@@ -1,0 +1,25 @@
+// D&D 5e stat block
+Creature(
+    name: "Zombie",
+    tags: [Medium, Undead, Common],
+    themes: [Crypt, Ruins],
+    difficulty: [Easy, Medium],
+    description: Description(
+        appearance: "A bloated corpse in rotting clothes, eyes glazed white, dragging itself forward with grasping hands.",
+        tactics: "Zombies shamble toward the nearest living creature and slam it repeatedly until destroyed.",
+    ),
+    stats: [
+        (label: "CR",  value: "1/4"),
+        (label: "HP",  value: "3d8+9"),
+        (label: "AC",  value: "8"),
+    ],
+    attacks: [
+        Attack(
+            name: "Slam",
+            stats: [
+                (label: "Bonus",  value: "+3"),
+                (label: "Damage", value: "1d6+1 Bludgeoning"),
+            ],
+        ),
+    ],
+)

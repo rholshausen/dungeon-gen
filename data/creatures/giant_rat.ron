@@ -1,0 +1,25 @@
+// D&D 5e stat block
+Creature(
+    name: "Giant Rat",
+    tags: [Small, Beast, Common],
+    themes: [Classic, Ruins, Underdark],
+    difficulty: [Easy],
+    description: Description(
+        appearance: "A dog-sized rat with matted fur, yellowed incisors, and a hairless whip-like tail.",
+        tactics: "Giant rats swarm in packs, snapping at ankles and retreating when struck hard.",
+    ),
+    stats: [
+        (label: "CR",  value: "1/8"),
+        (label: "HP",  value: "2d6"),
+        (label: "AC",  value: "12"),
+    ],
+    attacks: [
+        Attack(
+            name: "Bite",
+            stats: [
+                (label: "Bonus",  value: "+4"),
+                (label: "Damage", value: "1d4+2 Piercing"),
+            ],
+        ),
+    ],
+)

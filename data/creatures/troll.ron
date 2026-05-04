@@ -1,0 +1,32 @@
+// D&D 5e stat block
+Creature(
+    name: "Troll",
+    tags: [Large, Beast, Common],
+    themes: [Classic, Ruins, Underdark],
+    difficulty: [Hard, Deadly],
+    description: Description(
+        appearance: "A ten-foot creature of rubbery greenish hide, long powerful arms, and a slavering maw full of jagged teeth.",
+        tactics: "A troll attacks relentlessly, regenerating wounds each round — fire or acid must be applied to finish it.",
+    ),
+    stats: [
+        (label: "CR",  value: "5"),
+        (label: "HP",  value: "8d10+40"),
+        (label: "AC",  value: "15"),
+    ],
+    attacks: [
+        Attack(
+            name: "Claw",
+            stats: [
+                (label: "Bonus",  value: "+7"),
+                (label: "Damage", value: "2d6+4 Slashing"),
+            ],
+        ),
+        Attack(
+            name: "Bite",
+            stats: [
+                (label: "Bonus",  value: "+7"),
+                (label: "Damage", value: "1d6+4 Piercing"),
+            ],
+        ),
+    ],
+)

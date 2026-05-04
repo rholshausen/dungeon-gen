@@ -1,0 +1,32 @@
+// D&D 5e stat block
+Creature(
+    name: "Drow",
+    tags: [Medium, Humanoid, Rare],
+    themes: [Underdark],
+    difficulty: [Medium, Hard],
+    description: Description(
+        appearance: "A slender elf with obsidian-dark skin, silver-white hair, and eyes adapted to total darkness.",
+        tactics: "Drow use darkness and superior positioning to harry foes with hand crossbows before closing in.",
+    ),
+    stats: [
+        (label: "CR",  value: "1/4"),
+        (label: "HP",  value: "3d8"),
+        (label: "AC",  value: "15"),
+    ],
+    attacks: [
+        Attack(
+            name: "Shortsword",
+            stats: [
+                (label: "Bonus",  value: "+4"),
+                (label: "Damage", value: "1d6+2 Piercing"),
+            ],
+        ),
+        Attack(
+            name: "Hand Crossbow",
+            stats: [
+                (label: "Bonus",  value: "+4"),
+                (label: "Damage", value: "1d6+2 Piercing + poison"),
+            ],
+        ),
+    ],
+)

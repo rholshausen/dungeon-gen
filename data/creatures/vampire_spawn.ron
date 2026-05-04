@@ -1,0 +1,32 @@
+// D&D 5e stat block
+Creature(
+    name: "Vampire Spawn",
+    tags: [Medium, Undead, Rare],
+    themes: [Crypt, Underdark],
+    difficulty: [Hard, Deadly],
+    description: Description(
+        appearance: "A pale, gaunt figure in torn finery, lips pulled back to reveal elongated canine fangs.",
+        tactics: "Vampire spawn use their speed to isolate a single target, draining it before turning on others.",
+    ),
+    stats: [
+        (label: "CR",  value: "5"),
+        (label: "HP",  value: "11d8+22"),
+        (label: "AC",  value: "15"),
+    ],
+    attacks: [
+        Attack(
+            name: "Claws",
+            stats: [
+                (label: "Bonus",  value: "+6"),
+                (label: "Damage", value: "2d6+3 Slashing"),
+            ],
+        ),
+        Attack(
+            name: "Bite",
+            stats: [
+                (label: "Bonus",  value: "+6"),
+                (label: "Damage", value: "1d6+3 Piercing + 2d6 Necrotic (heals attacker)"),
+            ],
+        ),
+    ],
+)

@@ -1,0 +1,25 @@
+// D&D 5e stat block
+Creature(
+    name: "Hobgoblin",
+    tags: [Medium, Humanoid, Common],
+    themes: [Classic, Ruins, Underdark],
+    difficulty: [Medium, Hard],
+    description: Description(
+        appearance: "A tall, heavily armoured goblinoid with orange skin, a rigid bearing, and cold calculating eyes.",
+        tactics: "Hobgoblins fight in disciplined formation, protecting each other and exploiting flanking positions.",
+    ),
+    stats: [
+        (label: "CR",  value: "1/2"),
+        (label: "HP",  value: "2d8+2"),
+        (label: "AC",  value: "18"),
+    ],
+    attacks: [
+        Attack(
+            name: "Longsword",
+            stats: [
+                (label: "Bonus",  value: "+3"),
+                (label: "Damage", value: "1d8+1 Slashing"),
+            ],
+        ),
+    ],
+)

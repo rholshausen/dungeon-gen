@@ -1,0 +1,25 @@
+// D&D 5e stat block
+Creature(
+    name: "Orc",
+    tags: [Medium, Humanoid, Common],
+    themes: [Classic, Ruins],
+    difficulty: [Easy, Medium],
+    description: Description(
+        appearance: "A hulking brute with grey-green skin, tusks, and a permanent scowl.",
+        tactics: "Orcs charge recklessly, relying on brute strength and intimidation to overwhelm foes.",
+    ),
+    stats: [
+        (label: "CR",  value: "1/2"),
+        (label: "HP",  value: "2d8+6"),
+        (label: "AC",  value: "13"),
+    ],
+    attacks: [
+        Attack(
+            name: "Greataxe",
+            stats: [
+                (label: "Bonus",  value: "+5"),
+                (label: "Damage", value: "1d12+3 Slashing"),
+            ],
+        ),
+    ],
+)

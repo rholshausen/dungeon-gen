@@ -1,0 +1,32 @@
+// D&D 5e stat block
+Creature(
+    name: "Wight",
+    tags: [Medium, Undead, Rare],
+    themes: [Crypt, Ruins],
+    difficulty: [Hard, Deadly],
+    description: Description(
+        appearance: "A corpse-grey warrior clad in the rusted remnants of ancient armour, eyes burning with cold blue fire.",
+        tactics: "A wight leads with Life Drain to weaken foes, then cuts down survivors with its longsword.",
+    ),
+    stats: [
+        (label: "CR",  value: "3"),
+        (label: "HP",  value: "9d8+18"),
+        (label: "AC",  value: "14"),
+    ],
+    attacks: [
+        Attack(
+            name: "Longsword",
+            stats: [
+                (label: "Bonus",  value: "+4"),
+                (label: "Damage", value: "1d8+2 Slashing"),
+            ],
+        ),
+        Attack(
+            name: "Life Drain",
+            stats: [
+                (label: "Bonus",  value: "+4"),
+                (label: "Damage", value: "1d6+2 Necrotic (reduces max HP)"),
+            ],
+        ),
+    ],
+)

@@ -1,0 +1,25 @@
+// D&D 5e stat block
+Creature(
+    name: "Ogre",
+    tags: [Large, Humanoid, Common],
+    themes: [Classic, Ruins, Underdark],
+    difficulty: [Medium, Hard],
+    description: Description(
+        appearance: "A fifteen-foot mountain of muscle and fat covered in mottled skin, carrying a crude tree-trunk club.",
+        tactics: "An ogre wades into the densest group of enemies, swinging its greatclub in wide arcs.",
+    ),
+    stats: [
+        (label: "CR",  value: "2"),
+        (label: "HP",  value: "7d10+21"),
+        (label: "AC",  value: "11"),
+    ],
+    attacks: [
+        Attack(
+            name: "Greatclub",
+            stats: [
+                (label: "Bonus",  value: "+6"),
+                (label: "Damage", value: "2d8+4 Bludgeoning"),
+            ],
+        ),
+    ],
+)
