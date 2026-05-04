@@ -5,6 +5,7 @@ use rand_chacha::ChaCha8Rng;
 use crate::config::{Difficulty, Theme};
 use crate::data::creature::Creature;
 use crate::data::event::{AppliesTo, Event};
+use crate::data::room_contents::RoomContents;
 use crate::generator::bsp::Room;
 use crate::generator::corridor::Corridor;
 
@@ -13,10 +14,16 @@ pub fn seed(
     corridors: &mut Vec<Corridor>,
     creatures: &[Creature],
     events: &[Event],
+    contents: &[RoomContents],
     difficulty: Difficulty,
     theme: Theme,
     rng: &mut ChaCha8Rng,
 ) {
+    let matching_contents: Vec<&RoomContents> = contents
+        .iter()
+        .filter(|c| c.themes.contains(&theme) && c.difficulty.contains(&difficulty))
+        .collect();
+
     let base_events: Vec<&Event> = events
         .iter()
         .filter(|e| e.themes.contains(&theme) && e.difficulty.contains(&difficulty))
@@ -40,6 +47,13 @@ pub fn seed(
         .collect();
 
     for room in rooms.iter_mut() {
+        // ~85% chance of having contents; remaining rooms are empty
+        if rng.gen_bool(0.85) {
+            if let Some(&c) = matching_contents.choose(rng) {
+                room.assigned_contents = Some(c.clone());
+            }
+        }
+
         // ~60% chance of an event
         if rng.gen_bool(0.6) {
             if let Some(&event) = room_events.choose(rng) {

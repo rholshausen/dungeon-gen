@@ -64,10 +64,16 @@ pub struct DungeonConfig {
     pub room_shapes: RoomShapeWeights,
 }
 
+fn default_contents_dir() -> PathBuf {
+    PathBuf::from("./data/rooms")
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct DataConfig {
     pub creatures_dir: PathBuf,
     pub events_dir: PathBuf,
+    #[serde(default = "default_contents_dir")]
+    pub contents_dir: PathBuf,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -101,6 +107,7 @@ impl Default for Config {
             data: DataConfig {
                 creatures_dir: PathBuf::from("./data/creatures"),
                 events_dir: PathBuf::from("./data/events"),
+                contents_dir: PathBuf::from("./data/rooms"),
             },
             output: OutputConfig {
                 path: None,

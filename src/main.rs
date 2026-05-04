@@ -21,6 +21,7 @@ fn main() -> Result<()> {
 
     let creatures = data::creature::load_creatures(&cfg.data.creatures_dir)?;
     let events = data::event::load_events(&cfg.data.events_dir)?;
+    let contents = data::room_contents::load_room_contents(&cfg.data.contents_dir)?;
 
     let (mut rng, seed_used) = seed::make_rng(cfg.dungeon.seed);
 
@@ -32,6 +33,7 @@ fn main() -> Result<()> {
         &mut corridors,
         &creatures,
         &events,
+        &contents,
         cfg.difficulty,
         cfg.theme,
         &mut rng,

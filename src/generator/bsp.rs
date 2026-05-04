@@ -4,6 +4,7 @@ use rand_chacha::ChaCha8Rng;
 use crate::config::{DungeonConfig, RoomShapeWeights};
 use crate::data::creature::Creature;
 use crate::data::event::Event;
+use crate::data::room_contents::RoomContents;
 
 const MIN_PARTITION_SIZE: u32 = 8;
 const ROOM_MARGIN: u32 = 2;
@@ -47,6 +48,7 @@ pub struct Room {
     pub id: usize,
     pub bounds: Rect,
     pub shape: RoomShape,
+    pub assigned_contents: Option<RoomContents>,
     pub assigned_event: Option<Event>,
     pub assigned_creatures: Vec<Creature>,
 }
@@ -57,6 +59,7 @@ impl Room {
             id,
             bounds,
             shape: RoomShape::Rectangle,
+            assigned_contents: None,
             assigned_event: None,
             assigned_creatures: Vec::new(),
         }

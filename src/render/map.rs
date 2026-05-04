@@ -122,12 +122,12 @@ fn draw_door(layer: &PdfLayerReference, door: &Door, page_height_mm: f32, tile_s
     let span = tile_size;
 
     let (ox, oy, dw, dh) = if door.in_horizontal_corridor {
-        let cx = MAP_MARGIN_MM + door.x as f32 * tile_size;
-        let cy = page_height_mm - MAP_MARGIN_MM - door.y as f32 * tile_size;
+        let cx = MAP_MARGIN_MM + door.x * tile_size;
+        let cy = page_height_mm - MAP_MARGIN_MM - door.y * tile_size;
         (cx - thick / 2.0, cy - span / 2.0, thick, span)
     } else {
-        let cx = MAP_MARGIN_MM + door.x as f32 * tile_size;
-        let cy = page_height_mm - MAP_MARGIN_MM - door.y as f32 * tile_size;
+        let cx = MAP_MARGIN_MM + door.x * tile_size;
+        let cy = page_height_mm - MAP_MARGIN_MM - door.y * tile_size;
         (cx - span / 2.0, cy - thick / 2.0, span, thick)
     };
 
@@ -170,13 +170,54 @@ fn draw_door(layer: &PdfLayerReference, door: &Door, page_height_mm: f32, tile_s
     }
 }
 
+fn draw_grid(
+    layer: &PdfLayerReference,
+    page_width_mm: f32,
+    page_height_mm: f32,
+    grid_w: u32,
+    grid_h: u32,
+    tile_size: f32,
+) {
+    layer.set_outline_color(printpdf::Color::Rgb(Rgb::new(0.82, 0.82, 0.82, None)));
+    layer.set_outline_thickness(0.15);
+
+    let left = MAP_MARGIN_MM;
+    let right = MAP_MARGIN_MM + grid_w as f32 * tile_size;
+    let top = page_height_mm - MAP_MARGIN_MM;
+    let bottom = top - grid_h as f32 * tile_size;
+
+    let _ = page_width_mm; // used only to keep the signature symmetric with page_height_mm
+
+    for col in 0..=grid_w {
+        let x = MAP_MARGIN_MM + col as f32 * tile_size;
+        add_polygon(
+            layer,
+            vec![(Point::new(Mm(x), Mm(bottom)), false), (Point::new(Mm(x), Mm(top)), false)],
+            PaintMode::Stroke,
+        );
+    }
+    for row in 0..=grid_h {
+        let y = top - row as f32 * tile_size;
+        add_polygon(
+            layer,
+            vec![(Point::new(Mm(left), Mm(y)), false), (Point::new(Mm(right), Mm(y)), false)],
+            PaintMode::Stroke,
+        );
+    }
+}
+
 pub fn draw_map(
     layer: &PdfLayerReference,
     rooms: &[Room],
     corridors: &[Corridor],
+    page_width_mm: f32,
     page_height_mm: f32,
+    grid_w: u32,
+    grid_h: u32,
     tile_size: f32,
 ) {
+    draw_grid(layer, page_width_mm, page_height_mm, grid_w, grid_h, tile_size);
+
     layer.set_fill_color(printpdf::Color::Rgb(Rgb::new(0.6, 0.6, 0.6, None)));
     layer.set_outline_thickness(0.0);
 
@@ -214,6 +255,43 @@ pub fn room_label_position(room: &Room, page_height_mm: f32, tile_size: f32) -> 
         - MAP_MARGIN_MM
         - (room.bounds.y as f32 + room.bounds.height as f32 / 2.0) * tile_size;
     (Mm(cx), Mm(cy))
+}
+
+/// Draw a white-filled circle with the room number centred inside for each room.
+///
+/// Circles are drawn after `draw_map` so they sit on top of room fills and doors.
+/// The radius grows slightly for multi-digit labels to avoid clipping.
+pub fn draw_room_labels(
+    layer: &PdfLayerReference,
+    bold_font: &IndirectFontRef,
+    rooms: &[Room],
+    page_height_mm: f32,
+    tile_size: f32,
+) {
+    const LABEL_PT: f32 = 7.0;
+    const PT_TO_MM: f32 = 25.4 / 72.0;
+    let char_w_mm = LABEL_PT * 0.6 * PT_TO_MM;
+    let half_cap_mm = LABEL_PT * 0.7 * PT_TO_MM / 2.0;
+
+    for room in rooms {
+        let label = format!("{}", room.id + 1);
+        let (cx, cy) = room_label_position(room, page_height_mm, tile_size);
+
+        // Radius: half the text width plus a small margin, minimum 1.5 mm.
+        let r = (label.len() as f32 * char_w_mm / 2.0 + 0.4).max(1.5_f32);
+
+        // White filled circle with black outline
+        layer.set_fill_color(printpdf::Color::Rgb(Rgb::new(1.0, 1.0, 1.0, None)));
+        layer.set_outline_color(printpdf::Color::Rgb(Rgb::new(0.0, 0.0, 0.0, None)));
+        layer.set_outline_thickness(0.5);
+        add_polygon(layer, n_gon_points(cx.0, cy.0, r, r, 24, 0.0), PaintMode::FillStroke);
+
+        // Centred bold label — reset fill to black so use_text inherits it
+        layer.set_fill_color(printpdf::Color::Rgb(Rgb::new(0.0, 0.0, 0.0, None)));
+        let tx = Mm(cx.0 - label.len() as f32 * char_w_mm / 2.0);
+        let ty = Mm(cy.0 - half_cap_mm);
+        layer.use_text(&label, LABEL_PT, tx, ty, bold_font);
+    }
 }
 
 /// Returns the visual centre of the corridor segment whose midpoint is furthest from every room

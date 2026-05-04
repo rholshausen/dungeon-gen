@@ -65,26 +65,16 @@ pub fn render(
 
     // --- Page 1: Map ---
     let map_layer = doc.get_page(page1).get_layer(layer1);
-    map::draw_map(&map_layer, rooms, corridors, page_h.0, tile_size);
+    map::draw_map(&map_layer, rooms, corridors, page_w.0, page_h.0, grid_w, grid_h, tile_size);
 
-    // Room number labels — centred inside each room.
-    // use_text anchors at the left edge of the text baseline, so we correct for both:
-    //   x: subtract half the text width (Courier char width = 0.6em)
-    //   y: subtract half the cap height (≈ 0.7em) so glyphs straddle the room centre
+    // Room number labels — white circle with centred bold number.
+    map::draw_room_labels(&map_layer, &bold_font, rooms, page_h.0, tile_size);
+
+    // Corridor event labels — only drawn for corridors that have an assigned event.
     const LABEL_PT: f32 = 7.0;
     const PT_TO_MM: f32 = 25.4 / 72.0;
     let char_w_mm = LABEL_PT * 0.6 * PT_TO_MM;
     let half_cap_mm = LABEL_PT * 0.7 * PT_TO_MM / 2.0;
-
-    for room in rooms {
-        let label = format!("{}", room.id + 1);
-        let (lx, ly) = map::room_label_position(room, page_h.0, tile_size);
-        let cx = Mm(lx.0 - label.len() as f32 * char_w_mm / 2.0);
-        let cy = Mm(ly.0 - half_cap_mm);
-        map_layer.use_text(label, LABEL_PT, cx, cy, &bold_font);
-    }
-
-    // Corridor event labels — only drawn for corridors that have an assigned event.
     for corridor in corridors {
         if corridor.assigned_event.is_none() {
             continue;
@@ -123,13 +113,24 @@ pub fn render(
                 break;
             }
 
-            let header = if let Some(event) = &room.assigned_event {
-                format!("Room {} — {}", room.id + 1, event.name)
-            } else {
-                format!("Room {}", room.id + 1)
+            let header = match (&room.assigned_contents, &room.assigned_event) {
+                (Some(c), _) => format!("Room {} — {}", room.id + 1, c.name),
+                (None, Some(e)) => format!("Room {} — {}", room.id + 1, e.name),
+                (None, None) => format!("Room {} — Empty", room.id + 1),
             };
             notes_layer.use_text(&header, 10.0, Mm(10.0), Mm(y), &bold_font);
             y -= 6.0;
+
+            if let Some(contents) = &room.assigned_contents {
+                notes_layer.use_text(
+                    format!("  {}", contents.description),
+                    9.0,
+                    Mm(10.0),
+                    Mm(y),
+                    &font,
+                );
+                y -= 5.0;
+            }
 
             if let Some(event) = &room.assigned_event {
                 write_event_lines(&notes_layer, event, &mut y, &font);

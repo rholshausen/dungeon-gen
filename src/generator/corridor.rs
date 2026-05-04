@@ -1,9 +1,11 @@
+use std::f32::consts::PI;
+
 use rand::Rng;
 use rand_chacha::ChaCha8Rng;
 
 use crate::config::Difficulty;
 use crate::data::event::Event;
-use crate::generator::bsp::{Rect, Room};
+use crate::generator::bsp::{Rect, Room, RoomShape};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum DoorKind {
@@ -18,14 +20,14 @@ pub struct Door {
     pub locked: bool,
     /// Difficulty description for picking the lock; `None` when the door is not locked.
     pub lock_difficulty: Option<String>,
-    /// Grid x:
-    ///   horizontal corridor → wall boundary tile index (room's left or right edge)
+    /// Grid x (fractional tiles):
+    ///   horizontal corridor → wall boundary (shape-aware; may be inset from bounding box)
     ///   vertical corridor   → visual centre column of the corridor
-    pub x: u32,
-    /// Grid y:
+    pub x: f32,
+    /// Grid y (fractional tiles):
     ///   horizontal corridor → visual centre row of the corridor
-    ///   vertical corridor   → wall boundary tile index (room's top or bottom edge)
-    pub y: u32,
+    ///   vertical corridor   → wall boundary (shape-aware; may be inset from bounding box)
+    pub y: f32,
     /// True when the corridor runs left–right (door face is perpendicular, i.e. vertical).
     pub in_horizontal_corridor: bool,
 }
@@ -77,31 +79,64 @@ fn random_door_kind(rng: &mut ChaCha8Rng) -> DoorKind {
     }
 }
 
+/// X position (in grid tile units, possibly fractional) where a horizontal corridor meets the
+/// room's left or right wall, accounting for the actual wall position of each room shape.
+///
+/// Hex rooms are pointy-top (start_angle PI/2), so the leftmost/rightmost vertices sit at
+/// ±rx·cos(PI/6) ≈ ±0.866·rx rather than ±rx.
+/// Oct rooms (start_angle PI/8) have their flat left/right edges at ±rx·cos(PI/8) ≈ ±0.924·rx.
+fn room_horizontal_wall_x(room: &Room, going_right: bool) -> f32 {
+    let cx = room.bounds.x as f32 + room.bounds.width as f32 / 2.0;
+    let rx = room.bounds.width as f32 / 2.0;
+    let offset = match room.shape {
+        RoomShape::Rectangle | RoomShape::Round => rx,
+        RoomShape::Hexagonal => rx * (PI / 6.0).cos(), // √3/2 ≈ 0.866
+        RoomShape::Octagonal => rx * (PI / 8.0).cos(), // ≈ 0.924
+    };
+    if going_right { cx + offset } else { cx - offset }
+}
+
+/// Y position (in grid tile units, possibly fractional) where a vertical corridor meets the
+/// room's top or bottom wall (grid Y increases downward).
+///
+/// Hex rooms have vertices at the exact top/bottom (full ry).
+/// Oct rooms (start_angle PI/8) have their flat top/bottom edges at ±ry·cos(PI/8) ≈ ±0.924·ry.
+fn room_vertical_wall_y(room: &Room, going_down: bool) -> f32 {
+    let cy = room.bounds.y as f32 + room.bounds.height as f32 / 2.0;
+    let ry = room.bounds.height as f32 / 2.0;
+    let offset = match room.shape {
+        RoomShape::Rectangle | RoomShape::Round | RoomShape::Hexagonal => ry,
+        RoomShape::Octagonal => ry * (PI / 8.0).cos(), // ≈ 0.924
+    };
+    if going_down { cy + offset } else { cy - offset }
+}
+
 /// Wall-boundary position where the corridor leaves `room` (room-A end of the corridor).
-/// Returns (door_x, door_y, in_horizontal_corridor).
-fn exit_door_pos(room: &Room, cx1: u32, cy1: u32, cx2: u32, cy2: u32, seg_is_horiz: bool) -> (u32, u32, bool) {
+/// Returns (door_x, door_y, in_horizontal_corridor) in fractional grid-tile units.
+fn exit_door_pos(room: &Room, cx1: u32, cy1: u32, cx2: u32, cy2: u32, seg_is_horiz: bool) -> (f32, f32, bool) {
     if seg_is_horiz {
-        let wall_x = if cx2 >= cx1 { room.bounds.x + room.bounds.width } else { room.bounds.x };
-        (wall_x, cy1, true)
+        let going_right = cx2 >= cx1;
+        (room_horizontal_wall_x(room, going_right), cy1 as f32, true)
     } else {
-        let wall_y = if cy2 >= cy1 { room.bounds.y + room.bounds.height } else { room.bounds.y };
-        (cx1, wall_y, false)
+        let going_down = cy2 >= cy1;
+        (cx1 as f32, room_vertical_wall_y(room, going_down), false)
     }
 }
 
 /// Wall-boundary position where the corridor enters `room` (room-B end of the corridor).
-/// Returns (door_x, door_y, in_horizontal_corridor).
-fn entry_door_pos(room: &Room, cx1: u32, cy1: u32, cx2: u32, cy2: u32, seg_is_horiz: bool) -> (u32, u32, bool) {
+/// Returns (door_x, door_y, in_horizontal_corridor) in fractional grid-tile units.
+fn entry_door_pos(room: &Room, cx1: u32, cy1: u32, cx2: u32, cy2: u32, seg_is_horiz: bool) -> (f32, f32, bool) {
     if seg_is_horiz {
-        let wall_x = if cx2 >= cx1 { room.bounds.x } else { room.bounds.x + room.bounds.width };
-        (wall_x, cy2, true)
+        // Entering B from the opposite side to the exit direction.
+        let going_right = cx2 >= cx1;
+        (room_horizontal_wall_x(room, !going_right), cy2 as f32, true)
     } else {
-        let wall_y = if cy2 >= cy1 { room.bounds.y } else { room.bounds.y + room.bounds.height };
-        (cx2, wall_y, false)
+        let going_down = cy2 >= cy1;
+        (cx2 as f32, room_vertical_wall_y(room, !going_down), false)
     }
 }
 
-fn maybe_door(x: u32, y: u32, in_horiz: bool, difficulty: Difficulty, rng: &mut ChaCha8Rng) -> Option<Door> {
+fn maybe_door(x: f32, y: f32, in_horiz: bool, difficulty: Difficulty, rng: &mut ChaCha8Rng) -> Option<Door> {
     if !rng.gen_bool(0.5) {
         return None;
     }
