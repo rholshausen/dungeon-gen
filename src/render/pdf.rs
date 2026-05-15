@@ -9,6 +9,49 @@ use crate::generator::bsp::Room;
 use crate::generator::corridor::Corridor;
 use crate::render::map;
 
+/// y-coordinate below which a new entry must spill to the next page.
+const PAGE_BOTTOM_MM: f32 = 15.0;
+
+fn estimate_room_height(room: &Room) -> f32 {
+    let mut h = 6.0;
+    if room.assigned_contents.is_some() {
+        h += 5.0;
+    }
+    if let Some(event) = &room.assigned_event {
+        h += 5.0;
+        if event.difficulty_rating.is_some() {
+            h += 5.0;
+        }
+        h += 5.0;
+    }
+    if !room.assigned_creatures.is_empty() {
+        h += 5.0;
+    }
+    h + 4.0
+}
+
+fn estimate_corridor_height(corridor: &Corridor) -> f32 {
+    let mut h = 6.0;
+    if let Some(event) = &corridor.assigned_event {
+        h += 5.0;
+        if event.difficulty_rating.is_some() {
+            h += 5.0;
+        }
+        h += 5.0;
+    }
+    h + 4.0
+}
+
+fn estimate_creature_height(creature: &Creature) -> f32 {
+    let mut h = 5.0;
+    if !creature.stats.is_empty() {
+        h += 5.0;
+    }
+    h += 5.0 + 5.0;
+    h += 5.0 * creature.attacks.len() as f32;
+    h + 3.0
+}
+
 fn paper_dims(size: PaperSize) -> (Mm, Mm) {
     match size {
         PaperSize::A4 => (Mm(210.0), Mm(297.0)),
@@ -99,18 +142,25 @@ pub fn render(
         &font,
     );
 
+    // Helper: add a new section page with header + seed footer.
+    let new_section = |title: &str, header_text: &str, header_size: f32| -> (PdfLayerReference, f32) {
+        let (p, l) = doc.add_page(page_w, page_h, title);
+        let layer = doc.get_page(p).get_layer(l);
+        layer.use_text(header_text, header_size, Mm(10.0), Mm(page_h.0 - 20.0), &bold_font);
+        layer.use_text(format!("Seed: {seed}"), 8.0, Mm(10.0), Mm(8.0), &font);
+        (layer, page_h.0 - 35.0)
+    };
+
     // --- Pages 2..N: Room key ---
     if config.include_dm_notes {
-        let (page2, layer2) = doc.add_page(page_w, page_h, "Room Key");
-        let notes_layer = doc.get_page(page2).get_layer(layer2);
+        let (mut notes_layer, mut y) = new_section("Room Key", "Room Key", 16.0);
 
-        notes_layer.use_text("Room Key", 16.0, Mm(10.0), Mm(page_h.0 - 20.0), &bold_font);
-
-        let mut y = page_h.0 - 35.0;
         for room in rooms {
-            if y < 20.0 {
-                // Simple overflow: just stop (could add new pages in a full implementation)
-                break;
+            let needed = estimate_room_height(room);
+            if y - needed < PAGE_BOTTOM_MM {
+                let (l, ny) = new_section("Room Key (cont.)", "Room Key (cont.)", 16.0);
+                notes_layer = l;
+                y = ny;
             }
 
             let header = match (&room.assigned_contents, &room.assigned_event) {
@@ -151,53 +201,59 @@ pub fn render(
             y -= 4.0;
         }
 
-        // Corridor events — spill to a new page if there isn't room for at least the header
-        // plus one entry (~40mm).
+        // Corridor events — share the current page if header + first entry fit, else
+        // start a fresh page. Subsequent entries spill onto continuation pages.
         let corridors_with_events: Vec<&Corridor> =
             corridors.iter().filter(|c| c.assigned_event.is_some()).collect();
 
         if !corridors_with_events.is_empty() {
-            let (corr_layer, mut corr_y) = if y >= 40.0 {
-                y -= 4.0;
-                (doc.get_page(page2).get_layer(layer2), y)
+            let first_block = 12.0 + estimate_corridor_height(corridors_with_events[0]);
+            if y - first_block < PAGE_BOTTOM_MM {
+                let (l, ny) = new_section("Corridor Events", "Corridor Events", 12.0);
+                notes_layer = l;
+                y = ny;
             } else {
-                let (page_c, layer_c) = doc.add_page(page_w, page_h, "Corridor Events");
-                let layer = doc.get_page(page_c).get_layer(layer_c);
-                layer.use_text(format!("Seed: {seed}"), 8.0, Mm(10.0), Mm(8.0), &font);
-                (layer, page_h.0 - 20.0)
-            };
-
-            corr_layer.use_text("Corridor Events", 12.0, Mm(10.0), Mm(corr_y), &bold_font);
-            corr_y -= 8.0;
+                y -= 4.0;
+                notes_layer.use_text("Corridor Events", 12.0, Mm(10.0), Mm(y), &bold_font);
+                y -= 8.0;
+            }
 
             for corridor in corridors_with_events {
-                if corr_y < 20.0 {
-                    break;
+                let needed = estimate_corridor_height(corridor);
+                if y - needed < PAGE_BOTTOM_MM {
+                    let (l, ny) = new_section(
+                        "Corridor Events (cont.)",
+                        "Corridor Events (cont.)",
+                        12.0,
+                    );
+                    notes_layer = l;
+                    y = ny;
                 }
                 let event = corridor.assigned_event.as_ref().unwrap();
                 let header = format!("Corridor {} — {}", corridor.id + 1, event.name);
-                corr_layer.use_text(&header, 10.0, Mm(10.0), Mm(corr_y), &bold_font);
-                corr_y -= 6.0;
-                write_event_lines(&corr_layer, event, &mut corr_y, &font);
-                corr_y -= 4.0;
+                notes_layer.use_text(&header, 10.0, Mm(10.0), Mm(y), &bold_font);
+                y -= 6.0;
+                write_event_lines(&notes_layer, event, &mut y, &font);
+                y -= 4.0;
             }
         }
-
-        // Footer on room key page
-        notes_layer.use_text(format!("Seed: {seed}"), 8.0, Mm(10.0), Mm(8.0), &font);
     }
 
     // --- Stat block pages ---
     if !creatures_used.is_empty() {
-        let (stat_page, stat_layer_id) = doc.add_page(page_w, page_h, "Stat Blocks");
-        let stat_layer = doc.get_page(stat_page).get_layer(stat_layer_id);
+        let (mut stat_layer, mut y) =
+            new_section("Stat Blocks", "Creature Stat Blocks", 16.0);
 
-        stat_layer.use_text("Creature Stat Blocks", 16.0, Mm(10.0), Mm(page_h.0 - 20.0), &bold_font);
-
-        let mut y = page_h.0 - 35.0;
         for creature in creatures_used {
-            if y < 20.0 {
-                break;
+            let needed = estimate_creature_height(creature);
+            if y - needed < PAGE_BOTTOM_MM {
+                let (l, ny) = new_section(
+                    "Stat Blocks (cont.)",
+                    "Creature Stat Blocks (cont.)",
+                    16.0,
+                );
+                stat_layer = l;
+                y = ny;
             }
 
             stat_layer.use_text(&creature.name, 10.0, Mm(10.0), Mm(y), &bold_font);
@@ -239,8 +295,6 @@ pub fn render(
 
             y -= 3.0;
         }
-
-        stat_layer.use_text(format!("Seed: {seed}"), 8.0, Mm(10.0), Mm(8.0), &font);
     }
 
     doc.save(&mut std::io::BufWriter::new(std::fs::File::create(output)?))?;
