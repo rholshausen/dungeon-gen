@@ -1,0 +1,36 @@
+// GURPS 4e stat block
+Creature(
+    name: "Vampire Spawn",
+    tags: [Medium, Undead, Rare],
+    themes: [Crypt, Underdark],
+    difficulty: [Hard, Deadly],
+    description: Description(
+        appearance: "A pale, gaunt figure in torn finery, lips pulled back to reveal elongated canine fangs.",
+        tactics: "Vampire spawn use their speed to isolate a single target, draining it before turning on others.",
+    ),
+    stats: [
+        (label: "ST",   value: "14"),
+        (label: "DX",   value: "14"),
+        (label: "IQ",   value: "12"),
+        (label: "HT",   value: "14"),
+        (label: "HP",   value: "14"),
+        (label: "Move", value: "7"),
+        (label: "DR",   value: "3"),
+    ],
+    attacks: [
+        Attack(
+            name: "Claws",
+            stats: [
+                (label: "Skill",  value: "Brawling-15"),
+                (label: "Damage", value: "sw+1 cut"),
+            ],
+        ),
+        Attack(
+            name: "Bite",
+            stats: [
+                (label: "Skill",  value: "Brawling-15"),
+                (label: "Damage", value: "thr imp + 1d Toxic drain"),
+            ],
+        ),
+    ],
+)

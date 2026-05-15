@@ -1,0 +1,30 @@
+// GURPS 4e stat block
+Creature(
+    name: "Ogre",
+    tags: [Large, Humanoid, Common],
+    themes: [Classic, Ruins],
+    difficulty: [Medium, Hard],
+    description: Description(
+        appearance: "A massive, slope-browed giant with knotted muscles and a crude club the size of a tree trunk.",
+        tactics: "Ogres swing wildly at everything in reach, using their size to bully through formations.",
+    ),
+    stats: [
+        (label: "ST",   value: "20"),
+        (label: "DX",   value: "10"),
+        (label: "IQ",   value: "7"),
+        (label: "HT",   value: "13"),
+        (label: "HP",   value: "20"),
+        (label: "Move", value: "5"),
+        (label: "SM",   value: "+2"),
+        (label: "DR",   value: "2"),
+    ],
+    attacks: [
+        Attack(
+            name: "Greatclub",
+            stats: [
+                (label: "Skill",  value: "Two-Handed Club-13"),
+                (label: "Damage", value: "sw+7 cr"),
+            ],
+        ),
+    ],
+)

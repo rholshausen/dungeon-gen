@@ -1,0 +1,37 @@
+// GURPS 4e stat block
+Creature(
+    name: "Troll",
+    tags: [Large, Beast, Common],
+    themes: [Classic, Ruins, Underdark],
+    difficulty: [Hard, Deadly],
+    description: Description(
+        appearance: "A ten-foot creature of rubbery greenish hide, long powerful arms, and a slavering maw full of jagged teeth.",
+        tactics: "A troll attacks relentlessly, regenerating wounds each round — fire or acid must stop the healing.",
+    ),
+    stats: [
+        (label: "ST",   value: "22"),
+        (label: "DX",   value: "10"),
+        (label: "IQ",   value: "6"),
+        (label: "HT",   value: "15"),
+        (label: "HP",   value: "22"),
+        (label: "Move", value: "6"),
+        (label: "SM",   value: "+1"),
+        (label: "DR",   value: "4"),
+    ],
+    attacks: [
+        Attack(
+            name: "Claw",
+            stats: [
+                (label: "Skill",  value: "Brawling-13"),
+                (label: "Damage", value: "sw+3 cut"),
+            ],
+        ),
+        Attack(
+            name: "Bite",
+            stats: [
+                (label: "Skill",  value: "Brawling-13"),
+                (label: "Damage", value: "thr+3 imp"),
+            ],
+        ),
+    ],
+)

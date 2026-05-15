@@ -1,0 +1,29 @@
+// GURPS 4e stat block
+Creature(
+    name: "Skeleton",
+    tags: [Medium, Undead, Common],
+    themes: [Underdark, Crypt],
+    difficulty: [Easy, Medium],
+    description: Description(
+        appearance: "Animated bones clatter together as this undead warrior shambles forward.",
+        tactics: "Skeletons attack the nearest living creature relentlessly without strategy.",
+    ),
+    stats: [
+        (label: "ST",   value: "10"),
+        (label: "DX",   value: "10"),
+        (label: "IQ",   value: "7"),
+        (label: "HT",   value: "10"),
+        (label: "HP",   value: "10"),
+        (label: "Move", value: "5"),
+        (label: "DR",   value: "2"),
+    ],
+    attacks: [
+        Attack(
+            name: "Shortsword",
+            stats: [
+                (label: "Skill",  value: "Shortsword-11"),
+                (label: "Damage", value: "sw+1 cut / thr imp"),
+            ],
+        ),
+    ],
+)

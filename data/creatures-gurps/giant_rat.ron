@@ -1,0 +1,30 @@
+// GURPS 4e stat block
+Creature(
+    name: "Giant Rat",
+    tags: [Small, Beast, Common],
+    themes: [Classic, Ruins, Underdark],
+    difficulty: [Easy],
+    description: Description(
+        appearance: "A small, wiry creature with yellowed teeth and beady eyes.",
+        tactics: "Giant rats bite and flee, swarming lone targets when in large numbers.",
+    ),
+    stats: [
+        (label: "ST",   value: "5"),
+        (label: "DX",   value: "12"),
+        (label: "IQ",   value: "3"),
+        (label: "HT",   value: "12"),
+        (label: "HP",   value: "5"),
+        (label: "Move", value: "7"),
+        (label: "SM",   value: "-2"),
+        (label: "DR",   value: "0"),
+    ],
+    attacks: [
+        Attack(
+            name: "Bite",
+            stats: [
+                (label: "Skill",  value: "Brawling-12"),
+                (label: "Damage", value: "thr-2 cut"),
+            ],
+        ),
+    ],
+)

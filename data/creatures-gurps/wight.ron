@@ -1,0 +1,36 @@
+// GURPS 4e stat block
+Creature(
+    name: "Wight",
+    tags: [Medium, Undead, Rare],
+    themes: [Underdark, Crypt],
+    difficulty: [Hard, Deadly],
+    description: Description(
+        appearance: "A gaunt figure in rotted armour, eyes burning with cold green light, exuding an aura of dread.",
+        tactics: "Wights target the most dangerous foe first, using Life Drain to weaken before finishing with the blade.",
+    ),
+    stats: [
+        (label: "ST",   value: "12"),
+        (label: "DX",   value: "12"),
+        (label: "IQ",   value: "10"),
+        (label: "HT",   value: "12"),
+        (label: "HP",   value: "12"),
+        (label: "Move", value: "6"),
+        (label: "DR",   value: "3"),
+    ],
+    attacks: [
+        Attack(
+            name: "Longsword",
+            stats: [
+                (label: "Skill",  value: "Broadsword-13"),
+                (label: "Damage", value: "sw+2 cut / thr+2 imp"),
+            ],
+        ),
+        Attack(
+            name: "Life Drain",
+            stats: [
+                (label: "Skill",  value: "Life Drain-14"),
+                (label: "Damage", value: "1d-1 Toxic + drains 1 FP"),
+            ],
+        ),
+    ],
+)

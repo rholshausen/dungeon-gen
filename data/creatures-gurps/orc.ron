@@ -1,0 +1,29 @@
+// GURPS 4e stat block
+Creature(
+    name: "Orc",
+    tags: [Medium, Humanoid, Common],
+    themes: [Classic, Ruins],
+    difficulty: [Easy, Medium],
+    description: Description(
+        appearance: "A hulking brute with grey-green skin, tusks, and a permanent scowl.",
+        tactics: "Orcs charge recklessly, relying on brute strength and intimidation to overwhelm foes.",
+    ),
+    stats: [
+        (label: "ST",   value: "13"),
+        (label: "DX",   value: "11"),
+        (label: "IQ",   value: "8"),
+        (label: "HT",   value: "12"),
+        (label: "HP",   value: "13"),
+        (label: "Move", value: "5"),
+        (label: "DR",   value: "3"),
+    ],
+    attacks: [
+        Attack(
+            name: "Greataxe",
+            stats: [
+                (label: "Skill",  value: "Axe/Mace-13"),
+                (label: "Damage", value: "sw+4 cut"),
+            ],
+        ),
+    ],
+)

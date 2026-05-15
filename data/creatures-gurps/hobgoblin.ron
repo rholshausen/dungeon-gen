@@ -1,0 +1,29 @@
+// GURPS 4e stat block
+Creature(
+    name: "Hobgoblin",
+    tags: [Medium, Humanoid, Common],
+    themes: [Classic, Ruins],
+    difficulty: [Medium, Hard],
+    description: Description(
+        appearance: "A broad-shouldered goblinoid in battered chainmail, moving with disciplined efficiency.",
+        tactics: "Hobgoblins fight in formation, using flanking and shield walls to grind opponents down.",
+    ),
+    stats: [
+        (label: "ST",   value: "12"),
+        (label: "DX",   value: "12"),
+        (label: "IQ",   value: "10"),
+        (label: "HT",   value: "12"),
+        (label: "HP",   value: "12"),
+        (label: "Move", value: "6"),
+        (label: "DR",   value: "4"),
+    ],
+    attacks: [
+        Attack(
+            name: "Longsword",
+            stats: [
+                (label: "Skill",  value: "Broadsword-14"),
+                (label: "Damage", value: "sw+2 cut / thr+2 imp"),
+            ],
+        ),
+    ],
+)

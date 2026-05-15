@@ -1,0 +1,37 @@
+// GURPS 4e stat block
+Creature(
+    name: "Minotaur",
+    tags: [Large, Humanoid, Boss],
+    themes: [Classic, Ruins, Underdark],
+    difficulty: [Hard, Deadly],
+    description: Description(
+        appearance: "A massive bull-headed humanoid with iron-shod hooves, bloodshot eyes, and a rust-stained greataxe.",
+        tactics: "A minotaur charges in a straight line to gore and trample, then follows with sweeping greataxe blows.",
+    ),
+    stats: [
+        (label: "ST",   value: "22"),
+        (label: "DX",   value: "12"),
+        (label: "IQ",   value: "8"),
+        (label: "HT",   value: "14"),
+        (label: "HP",   value: "22"),
+        (label: "Move", value: "6"),
+        (label: "SM",   value: "+1"),
+        (label: "DR",   value: "2"),
+    ],
+    attacks: [
+        Attack(
+            name: "Greataxe",
+            stats: [
+                (label: "Skill",  value: "Axe/Mace-14"),
+                (label: "Damage", value: "sw+6 cut"),
+            ],
+        ),
+        Attack(
+            name: "Gore",
+            stats: [
+                (label: "Skill",  value: "Brawling-13"),
+                (label: "Damage", value: "thr+5 imp"),
+            ],
+        ),
+    ],
+)

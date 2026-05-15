@@ -1,0 +1,36 @@
+// GURPS 4e stat block
+Creature(
+    name: "Drow",
+    tags: [Medium, Humanoid, Rare],
+    themes: [Underdark],
+    difficulty: [Medium, Hard],
+    description: Description(
+        appearance: "A lithe elf with obsidian skin and white hair, moving with unnerving silence.",
+        tactics: "Drow open with crossbow fire from cover, then close with blades if cornered.",
+    ),
+    stats: [
+        (label: "ST",   value: "10"),
+        (label: "DX",   value: "14"),
+        (label: "IQ",   value: "12"),
+        (label: "HT",   value: "11"),
+        (label: "HP",   value: "10"),
+        (label: "Move", value: "6"),
+        (label: "DR",   value: "3"),
+    ],
+    attacks: [
+        Attack(
+            name: "Shortsword",
+            stats: [
+                (label: "Skill",  value: "Shortsword-15"),
+                (label: "Damage", value: "sw+1 cut / thr imp"),
+            ],
+        ),
+        Attack(
+            name: "Hand Crossbow",
+            stats: [
+                (label: "Skill",  value: "Crossbow-14"),
+                (label: "Damage", value: "1d imp"),
+            ],
+        ),
+    ],
+)

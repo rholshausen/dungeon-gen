@@ -1,0 +1,29 @@
+// GURPS 4e stat block
+Creature(
+    name: "Zombie",
+    tags: [Medium, Undead, Common],
+    themes: [Underdark, Crypt],
+    difficulty: [Easy, Medium],
+    description: Description(
+        appearance: "A lurching corpse, flesh grey and bloated, jaw working silently.",
+        tactics: "Zombies shuffle toward the nearest living creature, never retreating.",
+    ),
+    stats: [
+        (label: "ST",   value: "13"),
+        (label: "DX",   value: "8"),
+        (label: "IQ",   value: "7"),
+        (label: "HT",   value: "12"),
+        (label: "HP",   value: "13"),
+        (label: "Move", value: "3"),
+        (label: "DR",   value: "2"),
+    ],
+    attacks: [
+        Attack(
+            name: "Slam",
+            stats: [
+                (label: "Skill",  value: "Brawling-9"),
+                (label: "Damage", value: "thr+1 cr"),
+            ],
+        ),
+    ],
+)

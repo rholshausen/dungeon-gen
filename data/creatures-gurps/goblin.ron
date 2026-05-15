@@ -1,0 +1,30 @@
+// GURPS 4e stat block
+Creature(
+    name: "Goblin",
+    tags: [Small, Humanoid, Common],
+    themes: [Classic, Ruins],
+    difficulty: [Easy, Medium],
+    description: Description(
+        appearance: "A small, wiry creature with yellowed teeth and beady eyes.",
+        tactics: "Goblins prefer ambushes and flee when outnumbered.",
+    ),
+    stats: [
+        (label: "ST",   value: "8"),
+        (label: "DX",   value: "12"),
+        (label: "IQ",   value: "8"),
+        (label: "HT",   value: "11"),
+        (label: "HP",   value: "8"),
+        (label: "Move", value: "5"),
+        (label: "SM",   value: "-1"),
+        (label: "DR",   value: "2"),
+    ],
+    attacks: [
+        Attack(
+            name: "Scimitar",
+            stats: [
+                (label: "Skill",  value: "Broadsword-13"),
+                (label: "Damage", value: "sw+1 cut / thr+1 imp"),
+            ],
+        ),
+    ],
+)
