@@ -5,11 +5,6 @@ RoomContentsList([
         description: "Rough-hewn benches flank a weapon rack holding four spears. Dice and playing cards litter the floor.",
         themes: [Classic, Ruins, Underdark, Crypt],
         difficulty: [Easy, Medium, Hard, Deadly],
-        // Spear: vertical shaft with crossguard
-        icon: [
-            Line(x1: 0.0, y1: -0.8, x2: 0.0, y2: 0.8),
-            Line(x1: -0.25, y1: 0.45, x2: 0.25, y2: 0.45),
-        ],
     ),
     RoomContents(
         id: "barracks",
@@ -17,12 +12,6 @@ RoomContentsList([
         description: "Six straw pallets line the walls beside a communal fire pit. Boots, belts, and water skins hang from iron pegs.",
         themes: [Classic, Ruins, Underdark],
         difficulty: [Easy, Medium, Hard, Deadly],
-        // Three horizontal lines representing pallets/beds
-        icon: [
-            Line(x1: -0.65, y1: 0.5,  x2: 0.65, y2: 0.5),
-            Line(x1: -0.65, y1: 0.0,  x2: 0.65, y2: 0.0),
-            Line(x1: -0.65, y1: -0.5, x2: 0.65, y2: -0.5),
-        ],
     ),
     RoomContents(
         id: "kitchen",
@@ -30,12 +19,6 @@ RoomContentsList([
         description: "A blackened hearth dominates one wall. Shelves hold clay pots, dried herbs, and haunches of salted meat.",
         themes: [Classic, Underdark],
         difficulty: [Easy, Medium, Hard, Deadly],
-        // Upward triangle suggesting flames
-        icon: [
-            Line(x1: 0.0,  y1: 0.75,  x2: -0.55, y2: -0.5),
-            Line(x1: 0.0,  y1: 0.75,  x2:  0.55, y2: -0.5),
-            Line(x1: -0.55, y1: -0.5, x2:  0.55, y2: -0.5),
-        ],
     ),
     RoomContents(
         id: "armoury",
@@ -43,12 +26,6 @@ RoomContentsList([
         description: "Racks of rusted blades and dented shields cover three walls. A locked iron chest sits beneath a cluttered workbench.",
         themes: [Classic, Ruins, Underdark, Crypt],
         difficulty: [Easy, Medium, Hard, Deadly],
-        // Crossed weapons (X) with short crossguards at the centre
-        icon: [
-            Line(x1: -0.7, y1: -0.7, x2: 0.7, y2: 0.7),
-            Line(x1:  0.7, y1: -0.7, x2: -0.7, y2: 0.7),
-            Line(x1: -0.2, y1: 0.0,  x2: 0.2, y2: 0.0),
-        ],
     ),
     RoomContents(
         id: "store_room",
@@ -56,12 +33,6 @@ RoomContentsList([
         description: "Crates, barrels, and sacks crowd floor-to-ceiling, most stamped with a merchant's mark. A rat-gnawed ledger rests on a barrel lid.",
         themes: [Classic, Ruins, Underdark],
         difficulty: [Easy, Medium, Hard, Deadly],
-        // Crate: stroked rectangle with cross bracing
-        icon: [
-            Rect(x: -0.6, y: -0.6, w: 1.2, h: 1.2, filled: false),
-            Line(x1: -0.6, y1: 0.0, x2: 0.6, y2: 0.0),
-            Line(x1: 0.0, y1: -0.6, x2: 0.0, y2: 0.6),
-        ],
     ),
     RoomContents(
         id: "prison_cells",
@@ -69,14 +40,6 @@ RoomContentsList([
         description: "Iron-barred cells line the walls, straw rotting on the stone floors. A ring of keys hangs just out of reach on a far hook.",
         themes: [Classic, Ruins, Underdark, Crypt],
         difficulty: [Easy, Medium, Hard, Deadly],
-        // Four vertical bars with a horizontal rail
-        icon: [
-            Line(x1: -0.6, y1: -0.7, x2: -0.6, y2: 0.7),
-            Line(x1: -0.2, y1: -0.7, x2: -0.2, y2: 0.7),
-            Line(x1:  0.2, y1: -0.7, x2:  0.2, y2: 0.7),
-            Line(x1:  0.6, y1: -0.7, x2:  0.6, y2: 0.7),
-            Line(x1: -0.7, y1: 0.0,  x2:  0.7, y2: 0.0),
-        ],
     ),
     RoomContents(
         id: "torture_chamber",
@@ -84,13 +47,6 @@ RoomContentsList([
         description: "A rack, iron maiden, and brazier of cold coals fill the centre. Chains dangle from the ceiling; dried stains cover the floor.",
         themes: [Classic, Underdark, Crypt],
         difficulty: [Medium, Hard, Deadly],
-        // A rack: two uprights with two rails
-        icon: [
-            Line(x1: -0.55, y1: -0.7, x2: -0.55, y2: 0.7),
-            Line(x1:  0.55, y1: -0.7, x2:  0.55, y2: 0.7),
-            Line(x1: -0.55, y1:  0.5, x2:  0.55, y2: 0.5),
-            Line(x1: -0.55, y1: -0.5, x2:  0.55, y2: -0.5),
-        ],
     ),
     RoomContents(
         id: "refuse_pit",
@@ -98,11 +54,6 @@ RoomContentsList([
         description: "A grated pit drops into darkness; the stench of decay rises from it. Bones and broken gear line the rim.",
         themes: [Classic, Ruins, Underdark, Crypt],
         difficulty: [Easy, Medium, Hard, Deadly],
-        // Two concentric circles suggesting a pit opening
-        icon: [
-            NGon(cx: 0.0, cy: 0.0, r: 0.7, n: 16, start_angle: 0.0, filled: false),
-            NGon(cx: 0.0, cy: 0.0, r: 0.35, n: 16, start_angle: 0.0, filled: false),
-        ],
     ),
     RoomContents(
         id: "cistern",
@@ -110,11 +61,6 @@ RoomContentsList([
         description: "A wide stone basin filled with stagnant water occupies most of the floor. Iron pipes, long since seized with rust, feed in from the walls.",
         themes: [Classic, Ruins, Underdark],
         difficulty: [Easy, Medium, Hard, Deadly],
-        // Circle with a horizontal water-level line
-        icon: [
-            NGon(cx: 0.0, cy: 0.0, r: 0.7, n: 16, start_angle: 0.0, filled: false),
-            Line(x1: -0.7, y1: -0.2, x2: 0.7, y2: -0.2),
-        ],
     ),
     RoomContents(
         id: "forge",
@@ -122,11 +68,5 @@ RoomContentsList([
         description: "A cold stone forge and bellows sit against one wall. Tongs, hammers, and half-finished iron work cover a heavy oak bench.",
         themes: [Classic, Ruins, Underdark],
         difficulty: [Easy, Medium, Hard, Deadly],
-        // Hammer: rectangular head + handle line with end grip
-        icon: [
-            Rect(x: -0.35, y: 0.15, w: 0.7, h: 0.35, filled: false),
-            Line(x1: 0.0, y1: 0.15, x2: 0.0,   y2: -0.7),
-            Line(x1: -0.15, y1: -0.7, x2: 0.15, y2: -0.7),
-        ],
     ),
 ])
